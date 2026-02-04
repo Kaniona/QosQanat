@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="kk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>К
+
+        ір | QosQanat</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-logo">
+                <img src="../assets/images/logo.png" alt="QosQanat Logo">
+            </div>
+
+            <h1 class="auth-title">QosQanat</h1>
+
+            <div class="auth-tabs">
+                <button class="auth-tab active" onclick="switchTab('login')">Кіру</button>
+                <button class="auth-tab" onclick="switchTab('register')">Тіркелу</button>
+            </div>
+
+            <!-- Login Form -->
+            <div id="login-form" class="auth-form-section active">
+                <form onsubmit="return handleLogin(event)">
+                    <div class="form-group">
+                        <label class="form-label">Телефон немесе Email</label>
+                        <input type="text" class="form-control" id="login-phone" placeholder="87XXXXXXXXX" required>
+                        <small class="text-muted">Demo Admin: 87713399824</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Құпия сөз</label>
+                        <input type="password" class="form-control" id="login-password"
+                            placeholder="Құпия сөзіңізді енгізіңіз" required>
+                        <small class="text-muted">Demo құпия сөз: 02110166n</small>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block btn-lg">Кіру</button>
+                </form>
+            </div>
+
+            <!-- Register Form -->
+            <div id="register-form" class="auth-form-section">
+                <form onsubmit="return handleRegister(event)">
+                    <div class="form-group">
+                        <label class="form-label">Аты-жөні</label>
+                        <input type="text" class="form-control" id="register-name"
+                            placeholder="Толық аты-жөніңізді енгізіңіз" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Телефон</label>
+                        <input type="tel" class="form-control" id="register-phone" placeholder="87XXXXXXXXX" required
+                            pattern="[0-9]{11}">
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-control" id="register-email" placeholder="example@email.com"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Қала</label>
+                        <select class="form-control form-select" id="register-city" required>
+                            <option value="">Қаланы таңдаңыз</option>
+                            <option value="Астана">Астана</option>
+                            <option value="Алматы">Алматы</option>
+                            <option value="Шымкент">Шымкент</option>
+                            <option value="Қарағанды">Қарағанды</option>
+                            <option value="Ақтөбе">Ақтөбе</option>
+                            <option value="Тараз">Тараз</option>
+                            <option value="Павлодар">Павлодар</option>
+                            <option value="Өскемен">Өскемен</option>
+                            <option value="Семей">Семей</option>
+                            <option value="Орал">Орал</option>
+                            <option value="Қостанай">Қостанай</option>
+                            <option value="Қызылорда">Қызылорда</option>
+                            <option value="Атырау">Атырау</option>
+                            <option value="Ақтау">Ақтау</option>
+                            <option value="Петропавл">Петропавл</option>
+                            <option value="Талдықорған">Талдықорған</option>
+                            <option value="Түркістан">Түркістан</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Мектеп</label>
+                        <input type="text" class="form-control" id="register-school"
+                            placeholder="Мектебіңіздің атын енгізіңіз" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Сынып</label>
+                        <select class="form-control form-select" id="register-grade" required>
+                            <option value="">Сыныпты таңдаңыз</option>
+                            <option value="7">7-сынып</option>
+                            <option value="8">8-сынып</option>
+                            <option value="9">9-сынып</option>
+                            <option value="10">10-сынып</option>
+                            <option value="11">11-сынып</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Құпия сөз</label>
+                        <input type="password" class="form-control" id="register-password"
+                            placeholder="Құпия сөзді ойлап табыңыз" required minlength="6">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-block btn-lg">Тіркелу</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/auth.js"></script>
+    <script>
+        function switchTab(tab) {
+            const loginTab = document.querySelector('.auth-tab:first-child');
+            const registerTab = document.querySelector('.auth-tab:last-child');
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+
+            if (tab === 'login') {
+                loginTab.classList.add('active');
+                registerTab.classList.remove('active');
+                loginForm.classList.add('active');
+                registerForm.classList.remove('active');
+            } else {
+                registerTab.classList.add('active');
+                loginTab.classList.remove('active');
+                registerForm.classList.add('active');
+                loginForm.classList.remove('active');
+            }
+        }
+    </script>
+</body>
+
+</html>

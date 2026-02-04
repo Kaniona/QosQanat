@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="kk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Оқу | QosQanat</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container navbar-container">
+            <a href="home.html" class="navbar-brand">
+                <img src="../assets/images/logo.png" alt="QosQanat">
+                <span>QosQanat</span>
+            </a>
+
+            <ul class="navbar-menu">
+                <li><a href="home.html" class="navbar-link">Басты</a></li>
+                <li><a href="learning.html" class="navbar-link active">Оқу</a></li>
+                <li><a href="rating.html" class="navbar-link">Рейтинг</a></li>
+                <li><a href="shop.html" class="navbar-link">Дүкен</a></li>
+                <li><a href="profile.html" class="navbar-link">Профиль</a></li>
+                <li><button onclick="logout()" class="btn btn-sm btn-outline">Шығу</button></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container py-lg">
+        <!-- User Stats Widget -->
+        <div id="stats-widget" class="mb-xl animate-fade-in-down"></div>
+
+        <!-- Topics Section -->
+        <div id="topics-view">
+            <h1 class="text-center mb-xl animate-fade-in">Математика</h1>
+
+            <div class="grid grid-3">
+                <!-- Topic 1 -->
+                <div class="card topic-card animate-fade-in-up" onclick="loadTopic('topic1')">
+                    <div class="card-body">
+                        <div class="topic-icon">🔢</div>
+                        <h3 class="card-title">Натурал сандар</h3>
+                        <p class="card-text">Қосу, азайту, көбейту және бөлу амалдары</p>
+                        <div class="progress mt-md">
+                            <div class="progress-bar" style="width: 0%" id="progress-topic1"></div>
+                        </div>
+                        <p class="topic-progress-text" id="progress-text-topic1">0 / 20 есеп</p>
+                    </div>
+                </div>
+
+                <!-- Topic 2 -->
+                <div class="card topic-card animate-fade-in-up" onclick="loadTopic('topic2')">
+                    <div class="card-body">
+                        <div class="topic-icon">➗</div>
+                        <h3 class="card-title">Бөлшектер</h3>
+                        <p class="card-text">Бөлшектермен амалдар орындау</p>
+                        <div class="progress mt-md">
+                            <div class="progress-bar" style="width: 0%" id="progress-topic2"></div>
+                        </div>
+                        <p class="topic-progress-text" id="progress-text-topic2">0 / 20 есеп</p>
+                    </div>
+                </div>
+
+                <!-- Topic 3 -->
+                <div class="card topic-card animate-fade-in-up" onclick="loadTopic('topic3')">
+                    <div class="card-body">
+                        <div class="topic-icon">📐</div>
+                        <h3 class="card-title">Сызықтық теңдеулер</h3>
+                        <p class="card-text">Теңдеулерді шешу</p>
+                        <div class="progress mt-md">
+                            <div class="progress-bar" style="width: 0%" id="progress-topic3"></div>
+                        </div>
+                        <p class="topic-progress-text" id="progress-text-topic3">0 / 20 есеп</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Topic Detail View (Hidden by default) -->
+        <div id="topic-detail-view" style="display: none;">
+            <button class="btn btn-outline mb-lg" onclick="backToTopics()">← Артқа</button>
+
+            <h2 id="topic-title" class="mb-lg"></h2>
+
+            <!-- Theory and Examples -->
+            <div class="card mb-xl">
+                <div class="card-body">
+                    <h3 class="mb-md">📖 Теория</h3>
+                    <div id="theory-content"></div>
+
+                    <h3 class="mt-xl mb-md">💡 Мысалдар</h3>
+                    <div id="examples-content"></div>
+                </div>
+            </div>
+
+            <!-- Problems -->
+            <h3 class="mb-lg">✏️ Тапсырмалар</h3>
+            <div id="problems-container"></div>
+        </div>
+    </div>
+
+    <script src="../js/auth.js"></script>
+    <script src="../js/gamification.js"></script>
+    <script>
+        checkAuth();
+
+        // Load user stats
+        const user = getCurrentUser();
+        const completedProblems = JSON.parse(localStorage.getItem('completedProblems') || '[]');
+        const stats = JSON.parse(localStorage.getItem('userStats') || '{"level":1,"intellectPoints":0,"coins":20}');
+
+        document.getElementById('stats-widget').innerHTML = createStatsWidget(stats);
+
+        // Update progress for each topic
+        updateTopicProgress();
+
+        function updateTopicProgress() {
+            for (let i = 1; i <= 3; i++) {
+                const topicId = `topic${i}`;
+                const completed = completedProblems.filter(p => p.startsWith(topicId)).length;
+                const percentage = (completed / 20) * 100;
+
+                const progressBar = document.getElementById(`progress-${topicId}`);
+                const progressText = document.getElementById(`progress-text-${topicId}`);
+
+                if (progressBar) progressBar.style.width = `${percentage}%`;
+                if (progressText) progressText.textContent = `${completed} / 20 есеп`;
+            }
+        }
+
+        function backToTopics() {
+            document.getElementById('topics-view').style.display = 'block';
+            document.getElementById('topic-detail-view').style.display = 'none';
+            window.scrollTo(0, 0);
+        }
+
+        async function loadTopic(topicId) {
+            try {
+                const topicNumber = topicId.replace('topic', '');
+                const topicFiles = {
+                    'topic1': 'topic1-natural-numbers.json',
+                    'topic2': 'topic2-fractions.json',
+                    'topic3': 'topic3-linear-equations.json'
+                };
+
+                const response = await fetch(`../../data/mathematics/${topicFiles[topicId]}`);
+                const topicData = await response.json();
+
+                // Hide topics view, show detail view
+                document.getElementById('topics-view').style.display = 'none';
+                document.getElementById('topic-detail-view').style.display = 'block';
+
+                // Set title
+                document.getElementById('topic-title').textContent = topicData.title;
+
+                // Render theory
+                let theoryHTML = '';
+                topicData.theory.forEach(section => {
+                    theoryHTML += `
+                        <div class="mb-md">
+                            <h4>${section.section}</h4>
+                            <p>${section.content}</p>
+                        </div>
+                    `;
+                });
+                document.getElementById('theory-content').innerHTML = theoryHTML;
+
+                // Render examples
+                let examplesHTML = '';
+                topicData.examples.forEach(example => {
+                    examplesHTML += `
+                        <div class="card mb-md" style="background: var(--color-gray-50);">
+                            <div class="card-body">
+                                <p><strong>Есеп:</strong> ${example.problem}</p>
+                                <p><strong>Шешім:</strong> ${example.solution}</p>
+                                <p class="text-muted text-sm">${example.explanation}</p>
+                            </div>
+                        </div>
+                    `;
+                });
+                document.getElementById('examples-content').innerHTML = examplesHTML;
+
+                // Render problems
+                let problemsHTML = '';
+                topicData.problems.forEach((problem, index) => {
+                    const isCompleted = completedProblems.includes(problem.id);
+                    const difficultyColors = {
+                        'easy': 'success',
+                        'medium': 'warning',
+                        'hard': 'danger'
+                    };
+                    const difficultyLabels = {
+                        'easy': 'Оңай',
+                        'medium': 'Орташа',
+                        'hard': 'Қиын'
+                    };
+
+                    problemsHTML += `
+                        <div class="card problem-card">
+                            <div class="card-body">
+                                <div class="problem-header">
+                                    <div>
+                                        <span class="problem-number">Есеп ${index + 1}</span>
+                                        <span class="badge badge-${difficultyColors[problem.difficulty]} ml-sm">${difficultyLabels[problem.difficulty]}</span>
+                                        ${isCompleted ? '<span class="badge badge-success ml-sm">✓ Орындалған</span>' : ''}
+                                    </div>
+                                    <div class="problem-points">${problem.points} ұпай</div>
+                                </div>
+                                
+                                <div class="problem-question">${problem.question}</div>
+                                
+                                ${!isCompleted ? `
+                                <div class="problem-answer-input">
+                                    <input type="text" class="form-control" id="answer-${problem.id}" placeholder="Жауабыңызды енгізіңіз">
+                                    <button class="btn btn-primary" onclick="checkAnswer('${problem.id}', '${problem.answer}', ${problem.points})">Тексеру</button>
+                                </div>
+                                ` : '<div class="alert alert-success">Сіз бұл есепті шығардыңыз! ✓</div>'}
+                                
+                                <div id="solution-${problem.id}" class="problem-solution" style="display: none;">
+                                    <div class="problem-solution-title">📝 Шешімі:</div>
+                                    ${problem.solution.steps.map(step => `<div class="solution-step">${step}</div>`).join('')}
+                                </div>
+                                
+                                ${isCompleted ? `<button class="btn btn-sm btn-outline mt-md" onclick="toggleSolution('${problem.id}')">Шешімді көрсету</button>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                document.getElementById('problems-container').innerHTML = problemsHTML;
+
+                window.scrollTo(0, 0);
+            } catch (error) {
+                console.error('Error loading topic:', error);
+                showToast('error', 'Тақырыпты жүктеуде қате кетті. Деректер файлдарын тексеріңіз.');
+            }
+        }
+
+        function toggleSolution(problemId) {
+            const solution = document.getElementById(`solution-${problemId}`);
+            if (solution.style.display === 'none') {
+                solution.style.display = 'block';
+            } else {
+                solution.style.display = 'none';
+            }
+        }
+
+        function checkAnswer(problemId, correctAnswer, points) {
+            const userAnswer = document.getElementById(`answer-${problemId}`).value.trim();
+
+            if (!userAnswer) {
+                showToast('warning', 'Жауапты енгізіңіз!');
+                return;
+            }
+
+            const isCorrect = userAnswer.toLowerCase() === correctAnswer.toLowerCase();
+
+            if (isCorrect) {
+                // Save completed problem
+                completedProblems.push(problemId);
+                localStorage.setItem('completedProblems', JSON.stringify(completedProblems));
+
+                // Update stats
+                const currentStats = JSON.parse(localStorage.getItem('userStats') || '{"level":1,"intellectPoints":0,"coins":20}');
+                const oldLevel = currentStats.level;
+                currentStats.intellectPoints += points;
+
+                // Calculate new level
+                const levelInfo = calculateLevel(currentStats.intellectPoints);
+                currentStats.level = levelInfo.level;
+
+                // Award coins if leveled up
+                if (levelInfo.level > oldLevel) {
+                    const coinReward = calculateCoinReward(levelInfo.level);
+                    currentStats.coins += coinReward;
+                    showLevelUpAnimation(levelInfo.level, coinReward);
+                }
+
+                localStorage.setItem('userStats', JSON.stringify(currentStats));
+
+                // Show success message
+                showToast('success', `Дұрыс! +${points} ұпай`);
+
+                // Show solution
+                document.getElementById(`solution-${problemId}`).style.display = 'block';
+
+                // Update UI
+                updateStatsDisplay(currentStats);
+                updateTopicProgress();
+
+                // Reload topic to update completed status
+                setTimeout(() => {
+                    const currentTopic = document.getElementById('topic-title').textContent.includes('Натурал') ? 'topic1' :
+                        document.getElementById('topic-title').textContent.includes('Бөлшек') ? 'topic2' : 'topic3';
+                    loadTopic(currentTopic);
+                }, 2000);
+            } else {
+                showToast('error', 'Қате жауап. Қайталап көріңіз!');
+            }
+        }
+    </script>
+</body>
+
+</html>

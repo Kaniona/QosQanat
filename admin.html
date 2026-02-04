@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="kk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin панелі | QosQanat</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <div class="container navbar-container">
+            <a href="admin.html" class="navbar-brand">
+                <img src="../assets/images/logo.png" alt="QosQanat">
+                <span>QosQanat Admin</span>
+            </a>
+
+            <button onclick="adminLogout()" class="btn btn-sm btn-outline" style="color: white; border-color: white;">
+                Шығу
+            </button>
+        </div>
+    </nav>
+
+    <div class="container py-lg">
+        <h1 class="text-center mb-xl animate-fade-in">⚙️ Admin панелі</h1>
+
+        <!-- Stats Dashboard -->
+        <div class="grid grid-4 mb-xl">
+            <div class="card stat-card animate-fade-in-up"
+                style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                <div class="card-body text-center">
+                    <div style="font-size: 40px; margin-bottom: 10px;">👥</div>
+                    <h3 id="total-users">0</h3>
+                    <p style="opacity: 0.9;">Оқушылар</p>
+                </div>
+            </div>
+
+            <div class="card stat-card animate-fade-in-up"
+                style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white;">
+                <div class="card-body text-center">
+                    <div style="font-size: 40px; margin-bottom: 10px;">📰</div>
+                    <h3 id="total-news">0</h3>
+                    <p style="opacity: 0.9;">Жаңалықтар</p>
+                </div>
+            </div>
+
+            <div class="card stat-card animate-fade-in-up"
+                style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white;">
+                <div class="card-body text-center">
+                    <div style="font-size: 40px; margin-bottom: 10px;">✅</div>
+                    <h3 id="total-completed">0</h3>
+                    <p style="opacity: 0.9;">Шығарылған есептер</p>
+                </div>
+            </div>
+
+            <div class="card stat-card animate-fade-in-up"
+                style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white;">
+                <div class="card-body text-center">
+                    <div style="font-size: 40px; margin-bottom: 10px;">👨‍💼</div>
+                    <h3 id="total-admins">1</h3>
+                    <p style="opacity: 0.9;">Adminдер</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admin Tabs -->
+        <div class="admin-tabs mb-lg">
+            <button class="admin-tab active" onclick="switchAdminTab('news')">📰 Жаңалықтар</button>
+            <button class="admin-tab" onclick="switchAdminTab('users')">👥 Оқушылар</button>
+            <button class="admin-tab" onclick="switchAdminTab('admins')">👨‍💼 Adminдер</button>
+        </div>
+
+        <!-- News Management Tab -->
+        <div id="news-tab" class="admin-tab-content">
+            <div class="card mb-lg">
+                <div class="card-body">
+                    <h3 class="mb-lg">➕ Жаңа жаңалық жасау</h3>
+
+                    <div class="form-group">
+                        <label>Тақырып:</label>
+                        <input type="text" class="form-control" id="news-title" placeholder="Жаңалық тақырыбы">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Қысқаша сипаттама:</label>
+                        <textarea class="form-control" id="news-short" rows="2" placeholder="200 символға дейін"
+                            maxlength="200"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Толық сипаттама:</label>
+                        <textarea class="form-control" id="news-full" rows="5" placeholder="Толық мазмұны"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Сурет URL:</label>
+                        <input type="text" class="form-control" id="news-image"
+                            placeholder="https://example.com/image.jpg">
+                        <small class="text-muted">Немесе placeholder сурет пайдаланады</small>
+                    </div>
+
+                    <button class="btn btn-primary btn-lg" onclick="createNews()">
+                        Жаңалық жасау
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="mb-lg">📋 Барлық жаңалықтар</h3>
+                    <div id="news-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users Tab -->
+        <div id="users-tab" class="admin-tab-content" style="display: none;">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="mb-lg">👥 Тіркелген оқушылар</h3>
+                    <div id="users-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Admins Tab -->
+        <div id="admins-tab" class="admin-tab-content" style="display: none;">
+            <div class="card mb-lg">
+                <div class="card-body">
+                    <h3 class="mb-lg">➕ Жаңа admin қосу</h3>
+
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label>Аты-жөні:</label>
+                            <input type="text" class="form-control" id="admin-name" placeholder="Аты-жөні">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Телефон:</label>
+                            <input type="text" class="form-control" id="admin-phone" placeholder="87012345678">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Құпия сөз:</label>
+                        <input type="password" class="form-control" id="admin-password"
+                            placeholder="Кем дегенде 6 символ">
+                    </div>
+
+                    <button class="btn btn-primary" onclick="addAdmin()">
+                        Admin қосу
+                    </button>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="mb-lg">👨‍💼 Барлық adminдер</h3>
+                    <div id="admins-list"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/auth.js"></script>
+    <script>
+        // Check admin authentication
+        const user = getCurrentUser();
+        if (!user || user.role !== 'admin') {
+            // Not an admin, redirect to login
+            showToast('error', 'Тек adminдерге рұқсат!');
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1000);
+        }
+
+        // Mock data (replace with API calls)
+        let newsList = JSON.parse(localStorage.getItem('admin-news') || '[]');
+        let adminsList = [
+            { id: '1', fullName: 'QosQanat Admin', phone: '87713399824', createdAt: '2026-02-01' }
+        ];
+
+        // Load initial stats
+        loadDashboardStats();
+        loadNewsList();
+
+        function loadDashboardStats() {
+            // Mock stats (replace with API call)
+            const completedProblems = JSON.parse(localStorage.getItem('completedProblems') || '[]');
+
+            document.getElementById('total-users').textContent = '5';
+            document.getElementById('total-news').textContent = newsList.length;
+            document.getElementById('total-completed').textContent = completedProblems.length;
+            document.getElementById('total-admins').textContent = adminsList.length;
+        }
+
+        function switchAdminTab(tab) {
+            // Update tab buttons
+            document.querySelectorAll('.admin-tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Hide all tabs
+            document.querySelectorAll('.admin-tab-content').forEach(content => {
+                content.style.display = 'none';
+            });
+
+            // Show selected tab
+            if (tab === 'news') {
+                document.getElementById('news-tab').style.display = 'block';
+                loadNewsList();
+            } else if (tab === 'users') {
+                document.getElementById('users-tab').style.display = 'block';
+                loadUsersList();
+            } else if (tab === 'admins') {
+                document.getElementById('admins-tab').style.display = 'block';
+                loadAdminsList();
+            }
+        }
+
+        function createNews() {
+            const title = document.getElementById('news-title').value.trim();
+            const shortDesc = document.getElementById('news-short').value.trim();
+            const fullDesc = document.getElementById('news-full').value.trim();
+            const image = document.getElementById('news-image').value.trim() ||
+                'https://via.placeholder.com/400x200/667eea/ffffff?text=QosQanat';
+
+            if (!title || !shortDesc || !fullDesc) {
+                showToast('error', 'Барлық өрістерді толтырыңыз!');
+                return;
+            }
+
+            const newsItem = {
+                id: Date.now().toString(),
+                title,
+                shortDescription: shortDesc,
+                fullDescription: fullDesc,
+                image,
+                createdAt: new Date().toISOString().split('T')[0],
+                createdBy: user.fullName || 'Admin'
+            };
+
+            newsList.unshift(newsItem);
+            localStorage.setItem('admin-news', JSON.stringify(newsList));
+
+            // Clear form
+            document.getElementById('news-title').value = '';
+            document.getElementById('news-short').value = '';
+            document.getElementById('news-full').value = '';
+            document.getElementById('news-image').value = '';
+
+            showToast('success', 'Жаңалық жарияланды!');
+            loadNewsList();
+            loadDashboardStats();
+        }
+
+        function loadNewsList() {
+            const container = document.getElementById('news-list');
+
+            if (newsList.length === 0) {
+                container.innerHTML = '<div class="alert alert-info">Әлі жаңалықтар жоқ</div>';
+                return;
+            }
+
+            let html = '<div class="table-responsive"><table class="table">';
+            html += `
+                <thead>
+                    <tr>
+                        <th>Тақырып</th>
+                        <th>Күні</th>
+                        <th>Әрекет</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+
+            newsList.forEach(news => {
+                html += `
+                    <tr>
+                        <td>
+                            <strong>${news.title}</strong><br>
+                            <small class="text-muted">${news.shortDescription}</small>
+                        </td>
+                        <td>${news.createdAt}</td>
+                        <td>
+                            <button class="btn btn-sm btn-danger" onclick="deleteNews('${news.id}')">
+                                Жою
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table></div>';
+            container.innerHTML = html;
+        }
+
+        function deleteNews(newsId) {
+            if (!confirm('Жаңалықты жоюға сенімдісіз бе?')) return;
+
+            newsList = newsList.filter(n => n.id !== newsId);
+            localStorage.setItem('admin-news', JSON.stringify(newsList));
+
+            showToast('success', 'Жаңалық жойылды');
+            loadNewsList();
+            loadDashboardStats();
+        }
+
+        function loadUsersList() {
+            // Mock user data
+            const users = [
+                { fullName: 'Айдар Серікбаев', email: 'aidar@test.kz', city: 'Астана', school: '№1 НЗМ', grade: 10, level: 4, points: 850 },
+                { fullName: 'Жанар Қалиева', email: 'zhanar@test.kz', city: 'Алматы', school: '№28 гимназиясы', grade: 9, level: 4, points: 720 },
+                { fullName: 'Нұрсұлтан Әбдіғалиев', email: 'nursultan@test.kz', city: 'Астана', school: '№45 мектебі', grade: 11, level: 4, points: 950 }
+            ];
+
+            let html = '<div class="table-responsive"><table class="table">';
+            html += `
+                <thead>
+                    <tr>
+                        <th>Аты-жөні</th>
+                        <th>Email</th>
+                        <th>Қала</th>
+                        <th>Мектеп</th>
+                        <th>Сынып</th>
+                        <th>Деңгей</th>
+                        <th>Ұпай</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+
+            users.forEach(user => {
+                html += `
+                    <tr>
+                        <td>${user.fullName}</td>
+                        <td>${user.email}</td>
+                        <td>${user.city}</td>
+                        <td>${user.school}</td>
+                        <td>${user.grade}-сынып</td>
+                        <td><span class="level-badge">⭐ ${user.level}</span></td>
+                        <td><strong>${user.points}</strong></td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table></div>';
+            document.getElementById('users-list').innerHTML = html;
+        }
+
+        function addAdmin() {
+            const name = document.getElementById('admin-name').value.trim();
+            const phone = document.getElementById('admin-phone').value.trim();
+            const password = document.getElementById('admin-password').value;
+
+            if (!name || !phone || !password) {
+                showToast('error', 'Барлық өрістерді толтырыңыз!');
+                return;
+            }
+
+            if (password.length < 6) {
+                showToast('error', 'Құпия сөз кем дегенде 6 символдан тұруы керек!');
+                return;
+            }
+
+            const admin = {
+                id: Date.now().toString(),
+                fullName: name,
+                phone,
+                createdAt: new Date().toISOString().split('T')[0]
+            };
+
+            adminsList.push(admin);
+
+            // Clear form
+            document.getElementById('admin-name').value = '';
+            document.getElementById('admin-phone').value = '';
+            document.getElementById('admin-password').value = '';
+
+            showToast('success', 'Admin қосылды!');
+            loadAdminsList();
+            loadDashboardStats();
+        }
+
+        function loadAdminsList() {
+            let html = '<div class="table-responsive"><table class="table">';
+            html += `
+                <thead>
+                    <tr>
+                        <th>Аты-жөні</th>
+                        <th>Телефон</th>
+                        <th>Қосылған күні</th>
+                        <th>Әрекет</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+
+            adminsList.forEach((admin, index) => {
+                html += `
+                    <tr>
+                        <td>${admin.fullName}</td>
+                        <td>${admin.phone}</td>
+                        <td>${admin.createdAt}</td>
+                        <td>
+                            ${index !== 0 ? `<button class="btn btn-sm btn-danger" onclick="removeAdmin('${admin.id}')">Жою</button>` : '<span class="text-muted">Негізгі admin</span>'}
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table></div>';
+            document.getElementById('admins-list').innerHTML = html;
+        }
+
+        function removeAdmin(adminId) {
+            if (!confirm('Admin-ді жоюға сенімдісіз бе?')) return;
+
+            adminsList = adminsList.filter(a => a.id !== adminId);
+
+            showToast('success', 'Admin жойылды');
+            loadAdminsList();
+            loadDashboardStats();
+        }
+
+        function adminLogout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+
+</html>

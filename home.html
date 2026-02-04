@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="kk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Басты бет | QosQanat</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container navbar-container">
+            <a href="home.html" class="navbar-brand">
+                <img src="../assets/images/logo.png" alt="QosQanat">
+                <span>QosQanat</span>
+            </a>
+
+            <ul class="navbar-menu">
+                <li><a href="home.html" class="navbar-link active">Басты</a></li>
+                <li><a href="learning.html" class="navbar-link">Оқу</a></li>
+                <li><a href="rating.html" class="navbar-link">Рейтинг</a></li>
+                <li><a href="shop.html" class="navbar-link">Дүкен</a></li>
+                <li><a href="profile.html" class="navbar-link">Профиль</a></li>
+                <li><button onclick="logout()" class="btn btn-sm btn-outline">Шығу</button></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container py-lg">
+        <!-- User Stats Widget -->
+        <div id="stats-widget" class="mb-xl animate-fade-in-down"></div>
+
+        <!-- Page Title -->
+        <h1 class="text-center mb-xl animate-fade-in">Жаңалықтар</h1>
+
+        <!-- News Grid -->
+        <div class="grid grid-3" id="news-grid">
+            <!-- News Card 1 -->
+            <div class="card news-card animate-fade-in-up">
+                <img src="https://via.placeholder.com/400x200/667eea/ffffff?text=QosQanat" alt="News"
+                    class="card-img-top">
+                <div class="card-body">
+                    <p class="news-date">📅 2026-02-01</p>
+                    <h3 class="card-title">QosQanat платформасы іске қосылды!</h3>
+                    <p class="card-text">Мектеп оқушыларына арналған заманауи білім беру платформасы ресми түрде жұмысын
+                        бастады.</p>
+                    <button class="btn btn-primary news-btn" onclick="showNewsModal('news1')">Толығырақ →</button>
+                </div>
+            </div>
+
+            <!-- News Card 2 -->
+            <div class="card news-card animate-fade-in-up">
+                <img src="https://via.placeholder.com/400x200/f5576c/ffffff?text=Математика" alt="News"
+                    class="card-img-top">
+                <div class="card-body">
+                    <p class="news-date">📅 2026-02-02</p>
+                    <h3 class="card-title">60 жаңа математика есебі қосылды</h3>
+                    <p class="card-text">Натурал сандар, бөлшектер және сызықтық теңдеулер тақырыптары бойынша есептер.
+                    </p>
+                    <button class="btn btn-primary news-btn" onclick="showNewsModal('news2')">Толығырақ →</button>
+                </div>
+            </div>
+
+            <!-- News Card 3 -->
+            <div class="card news-card animate-fade-in-up">
+                <img src="https://via.placeholder.com/400x200/4facfe/ffffff?text=Рейтинг" alt="News"
+                    class="card-img-top">
+                <div class="card-body">
+                    <p class="news-date">📅 2026-02-03</p>
+                    <h3 class="card-title">Рейтинг жүйесі жаңартылды</h3>
+                    <p class="card-text">Енді қала және республика бойынша рейтингіңізді көре аласыз!</p>
+                    <button class="btn btn-primary news-btn" onclick="showNewsModal('news3')">Толығырақ →</button>
+                </div>
+            </div>
+
+            <!-- News Card 4 -->
+            <div class="card news-card animate-fade-in-up">
+                <img src="https://via.placeholder.com/400x200/fee140/333333?text=Дүкен" alt="News" class="card-img-top">
+                <div class="card-body">
+                    <p class="news-date">📅 2026-02-04</p>
+                    <h3 class="card-title">Жаңа аватар заттары дүкенде!</h3>
+                    <p class="card-text">Көзілдірік, бас киім, алтын фон және супер костюм сатып алыңыз.</p>
+                    <button class="btn btn-primary news-btn" onclick="showNewsModal('news4')">Толығырақ →</button>
+                </div>
+            </div>
+
+            <!-- News Card 5 -->
+            <div class="card news-card animate-fade-in-up">
+                <img src="https://via.placeholder.com/400x200/a8edea/333333?text=Деңгей" alt="News"
+                    class="card-img-top">
+                <div class="card-body">
+                    <p class="news-date">📅 2026-01-30</p>
+                    <h3 class="card-title">Деңгей жүйесі енгізілді</h3>
+                    <p class="card-text">Есеп шығарып ұпай жинаңыз және деңгейлеріңізді өсіріңіз!</p>
+                    <button class="btn btn-primary news-btn" onclick="showNewsModal('news5')">Толығырақ →</button>
+                </div>
+            </div>
+
+            <!-- News Card 6 -->
+            <div class="card news-card animate-fade-in-up">
+                <img src="https://via.placeholder.com/400x200/fed6e3/333333?text=Аватар" alt="News"
+                    class="card-img-top">
+                <div class="card-body">
+                    <p class="news-date">📅 2026-01-28</p>
+                    <h3 class="card-title">Аватарларды таныстырамыз</h3>
+                    <p class="card-text">Бектұр және Назым - сіздің виртуалды көмекшілеріңіз!</p>
+                    <button class="btn btn-primary news-btn" onclick="showNewsModal('news6')">Толығырақ →</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- News Modal -->
+    <div id="news-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modal-title">Жаңалық</h2>
+                <button class="modal-close" onclick="closeNewsModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modal-body">
+                <!-- Content will be inserted here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/auth.js"></script>
+    <script src="../js/gamification.js"></script>
+    <script>
+        // Check authentication
+        checkAuth();
+
+        // Load user stats
+        const user = getCurrentUser();
+        const stats = JSON.parse(localStorage.getItem('userStats') || '{"level":1,"intellectPoints":0,"coins":20}');
+
+        document.getElementById('stats-widget').innerHTML = createStatsWidget(stats);
+
+        // News modal functions
+        const newsData = {
+            news1: {
+                title: 'QosQanat платформасы іске қосылды!',
+                content: `
+                    <p>Құрметті оқушылар!</p>
+                    <p>Біз қуанышпен QosQanat білім беру платформасының ресми іске қосылғанын хабарлаймыз!</p>
+                    <h4>Негізгі мүмкіндіктер:</h4>
+                    <ul>
+                        <li>🎮 Геймификация элементтері</li>
+                        <li>📚 60+ математика есебі</li>
+                        <li>🏆 Рейтинг жүйесі</li>
+                        <li>🛒 Виртуалды дүкен</li>
+                        <li>👥 Екі аватар: Бектұр және Назым</li>
+                    </ul>
+                    <p>Платформа 7-11 сынып оқушыларына арналған және математика пәнінен білімді тереңдетуге көмектеседі.</p>
+                `
+            },
+            news2: {
+                title: '60 жаңа математика есебі қосылды',
+                content: `
+                    <p>Платформаға 3 тақырып бойынша 60 есеп қосылды:</p>
+                    <h4>📘 Тақырып 1: Натурал сандар</h4>
+                    <p>20 есеп - қосу, азайту, көбейту және бөлу амалдары</p>
+                    <h4>📗 Тақырып 2: Бөлшектер</h4>
+                    <p>20 есеп - бөлшектермен амалдар орындау</p>
+                    <h4>📙 Тақырып 3: Сызықтық теңдеулер</h4>
+                    <p>20 есеп - теңдеулерді шешу</p>
+                    <p>Барлық есептер толық шешімдерімен берілген!</p>
+                `
+            },
+            news3: {
+                title: 'Рейтинг жүйесі жаңартылды',
+                content: `
+                    <p>Енді екі түрлі рейтингті көре аласыз:</p>
+                    <h4>🏙️ Қала бойынша рейтинг</h4>
+                    <p>Өз қалаңыздағы оқушылармен салыстырыңыз</p>
+                    <h4>🇰🇿 Қазақстан бойынша рейтинг</h4>
+                    <p>Бүкіл республика бойынша орныңызды білініз</p>
+                    <p>Рейтинг ақыл ұпайы негізінде есептеледі. Неғұрлым көп есеп шығарсаңыз, соғұрлым жоғары орында боласыз!</p>
+                `
+            },
+            news4: {
+                title: 'Жаңа аватар заттары дүкенде!',
+                content: `
+                    <p>Дүкенде сатып алуға болатын заттар:</p>
+                    <div style="display: grid; gap: 15px; margin: 20px 0;">
+                        <div class="alert alert-info">🕶️ <strong>Көзілдірік</strong> - 50 coin</div>
+                        <div class="alert alert-info">🎩 <strong>Бас киім</strong> - 70 coin</div>
+                        <div class="alert alert-info">⭐ <strong>Алтын фон</strong> - 100 coin</div>
+                        <div class="alert alert-info">🦸 <strong>Супер костюм</strong> - 150 coin</div>
+                    </div>
+                    <p>Coin жинау үшін есептер шығарып, деңгейге өтуіңіз керек!</p>
+                `
+            },
+            news5: {
+                title: 'Деңгей жүйесі енгізілді',
+                content: `
+                    <p>Әр есеп шығарғаныңызға ақыл ұпайы беріледі:</p>
+                    <ul>
+                        <li>Оңай есептер: 5 ұпай</li>
+                        <li>Орташа есептер: 10 ұпай</li>
+                        <li>Қиын есептер: 15 ұпай</li>
+                    </ul>
+                    <h4>Деңгейлер:</h4>
+                    <ul>
+                        <li>1-деңгей: 100 ұпай</li>
+                        <li>2-деңгей: 250 ұпай</li>
+                        <li>3-деңгей: 450 ұпай</li>
+                        <li>4-деңгей: 700 ұпай</li>
+                    </ul>
+                    <p>Әр жаңа деңгейге өткенде coin марапаты аласыз!</p>
+                `
+            },
+            news6: {
+                title: 'Аватарларды таныстырамыз',
+                content: `
+                    <h4>👦 Бектұр</h4>
+                    <p>Математиканы жақсы көретін, ізденімпаз жігіт. Есептерді шешуге қызығады және жаңа білім алғысы келеді.</p>
+                    <h4>👧 Назым</h4>
+                    <p>Білімге құмар, ақылды қыз. Оқуға ынталы және басқаларға көмектесуді ұнатады.</p>
+                    <p>Тіркелгенде екеуінің бірін таңдап, онымен бірге оқи аласыз!</p>
+                `
+            }
+        };
+
+        function showNewsModal(newsId) {
+            const news = newsData[newsId];
+            if (news) {
+                document.getElementById('modal-title').textContent = news.title;
+                document.getElementById('modal-body').innerHTML = news.content;
+                document.getElementById('news-modal').classList.add('show');
+            }
+        }
+
+        function closeNewsModal() {
+            document.getElementById('news-modal').classList.remove('show');
+        }
+
+        // Close modal on backdrop click
+        document.getElementById('news-modal').addEventListener('click', function (e) {
+            if (e.target === this) {
+                closeNewsModal();
+            }
+        });
+    </script>
+</body>
+
+</html>

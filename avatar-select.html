@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="kk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Аватар таңдау | QosQanat</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+
+<body>
+    <div class="avatar-selection-page">
+        <h1 class="avatar-title animate-fade-in-down">Аватарыңызды таңдаңыз</h1>
+
+        <div class="avatar-grid">
+            <!-- Bektur Avatar -->
+            <div class="avatar-option animate-fade-in-up" onclick="selectAvatar('bektur')" data-avatar="bektur">
+                <div class="avatar-image-container">
+                    <img src="../assets/images/bektur.jpg" alt="Бектұр">
+                </div>
+                <h3 class="avatar-name">👦 Бектұр</h3>
+                <p class="avatar-description">Математиканы жақсы көретін, ізденімпаз жігіт</p>
+            </div>
+
+            <!-- Nazym Avatar -->
+            <div class="avatar-option animate-fade-in-up" onclick="selectAvatar('nazym')" data-avatar="nazym">
+                <div class="avatar-image-container">
+                    <img src="../assets/images/nazym.jpg" alt="Назым">
+                </div>
+                <h3 class="avatar-name">👧 Назым</h3>
+                <p class="avatar-description">Білімге құмар, ақылды қыз</p>
+            </div>
+        </div>
+
+        <div class="container text-center mt-xl">
+            <button id="continue-btn" class="btn btn-secondary btn-lg" style="display: none;"
+                onclick="continueToHome()">
+                Жалғастыру →
+            </button>
+        </div>
+    </div>
+
+    <script src="../js/auth.js"></script>
+    <script>
+        let selectedAvatar = null;
+
+        function selectAvatar(avatar) {
+            selectedAvatar = avatar;
+
+            // Remove previous selection
+            document.querySelectorAll('.avatar-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+
+            // Add selection to clicked avatar
+            document.querySelector(`[data-avatar="${avatar}"]`).classList.add('selected');
+
+            // Show continue button
+            document.getElementById('continue-btn').style.display = 'inline-flex';
+            document.getElementById('continue-btn').classList.add('animate-bounce-in');
+        }
+
+        function continueToHome() {
+            if (!selectedAvatar) {
+                showToast('error', 'Аватар таңдаңыз!');
+                return;
+            }
+
+            // Save avatar to localStorage
+            localStorage.setItem('avatar', selectedAvatar);
+
+            // Update user object
+            const user = JSON.parse(localStorage.getItem('user') || '{}');
+            user.avatar = selectedAvatar;
+            localStorage.setItem('user', JSON.stringify(user));
+
+            // Also update in users database
+            const users = JSON.parse(localStorage.getItem('qosqanat-users') || '{}');
+            if (users[user.phone]) {
+                users[user.phone].avatar = selectedAvatar;
+                localStorage.setItem('qosqanat-users', JSON.stringify(users));
+            }
+
+            showToast('success', `${selectedAvatar === 'bektur' ? 'Бектұр' : 'Назым'} таңдалды!`);
+
+            setTimeout(() => {
+                window.location.href = 'home.html';
+            }, 500);
+        }
+    </script>
+</body>
+
+</html>

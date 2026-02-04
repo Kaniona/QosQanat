@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="kk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль | QosQanat</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container navbar-container">
+            <a href="home.html" class="navbar-brand">
+                <img src="../assets/images/logo.png" alt="QosQanat">
+                <span>QosQanat</span>
+            </a>
+
+            <ul class="navbar-menu">
+                <li><a href="home.html" class="navbar-link">Басты</a></li>
+                <li><a href="learning.html" class="navbar-link">Оқу</a></li>
+                <li><a href="rating.html" class="navbar-link">Рейтинг</a></li>
+                <li><a href="shop.html" class="navbar-link">Дүкен</a></li>
+                <li><a href="profile.html" class="navbar-link active">Профиль</a></li>
+                <li><button onclick="logout()" class="btn btn-sm btn-outline">Шығу</button></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container py-lg">
+        <div class="grid grid-2">
+            <!-- Left Column - Avatar and Basic Info -->
+            <div>
+                <!-- Avatar Card -->
+                <div class="card mb-lg animate-fade-in-up">
+                    <div class="card-body text-center">
+                        <div class="profile-avatar-large" id="profile-avatar">
+                            <img src="../assets/images/bektur.jpg" alt="Avatar" id="avatar-img">
+                        </div>
+                        <h2 class="mt-md" id="user-fullname">Оқушы</h2>
+                        <p class="text-muted" id="user-school">Мектеп</p>
+                        <button class="btn btn-outline mt-md" onclick="changeAvatar()">Аватарды өзгерту</button>
+                    </div>
+                </div>
+
+                <!-- Stats Card -->
+                <div class="card animate-fade-in-up">
+                    <div class="card-body">
+                        <h3 class="mb-lg">📊 Статистика</h3>
+
+                        <div class="stat-row">
+                            <span class="stat-label">⭐ Деңгей:</span>
+                            <span class="stat-value" id="stat-level">1</span>
+                        </div>
+
+                        <div class="stat-row">
+                            <span class="stat-label">🧠 Ақыл ұпайы:</span>
+                            <span class="stat-value" id="stat-points">0</span>
+                        </div>
+
+                        <div class="stat-row">
+                            <span class="stat-label">🪙 Coin:</span>
+                            <span class="stat-value" id="stat-coins">20</span>
+                        </div>
+
+                        <div class="stat-row">
+                            <span class="stat-label">✅ Орындалған есептер:</span>
+                            <span class="stat-value" id="stat-completed">0</span>
+                        </div>
+
+                        <div class="mt-lg">
+                            <p class="text-sm text-muted mb-sm">Келесі деңгейге дейін</p>
+                            <div class="progress progress-lg">
+                                <div class="progress-bar" id="level-progress" style="width: 0%"></div>
+                            </div>
+                            <p class="text-sm text-center mt-sm" id="progress-text">0 / 100 ұпай</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column - Details and Progress -->
+            <div>
+                <!-- Personal Info Card -->
+                <div class="card mb-lg animate-fade-in-up">
+                    <div class="card-body">
+                        <h3 class="mb-lg">👤 Жеке деректер</h3>
+
+                        <div class="form-group">
+                            <label>Аты-жөні:</label>
+                            <input type="text" class="form-control" id="edit-fullname" value="Оқушы">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Email:</label>
+                            <input type="email" class="form-control" id="edit-email" value="student@qosqanat.kz">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Телефон:</label>
+                            <input type="text" class="form-control" id="edit-phone" value="87012345678" disabled>
+                        </div>
+
+                        <div class="grid grid-2">
+                            <div class="form-group">
+                                <label>Қала:</label>
+                                <select class="form-control" id="edit-city">
+                                    <option>Астана</option>
+                                    <option>Алматы</option>
+                                    <option>Шымкент</option>
+                                    <option>Қарағанды</option>
+                                    <option>Ақтөбе</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Сынып:</label>
+                                <select class="form-control" id="edit-grade">
+                                    <option value="7">7-сынып</option>
+                                    <option value="8">8-сынып</option>
+                                    <option value="9" selected>9-сынып</option>
+                                    <option value="10">10-сынып</option>
+                                    <option value="11">11-сынып</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Мектеп:</label>
+                            <input type="text" class="form-control" id="edit-school" value="№1 мектебі">
+                        </div>
+
+                        <button class="btn btn-primary btn-block mt-lg" onclick="saveProfile()">Сақтау</button>
+                    </div>
+                </div>
+
+                <!-- Progress by Topics Card -->
+                <div class="card animate-fade-in-up">
+                    <div class="card-body">
+                        <h3 class="mb-lg">📈 Тақырыптар бойынша прогресс</h3>
+
+                        <div class="topic-progress-item">
+                            <div class="topic-progress-header">
+                                <span>🔢 Натурал сандар</span>
+                                <span class="fw-bold" id="progress-count-1">0 / 20</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" id="progress-bar-1" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <div class="topic-progress-item">
+                            <div class="topic-progress-header">
+                                <span>➗ Бөлшектер</span>
+                                <span class="fw-bold" id="progress-count-2">0 / 20</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" id="progress-bar-2" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <div class="topic-progress-item">
+                            <div class="topic-progress-header">
+                                <span>📐 Сызықтық теңдеулер</span>
+                                <span class="fw-bold" id="progress-count-3">0 / 20</span>
+                            </div>
+                            <div class="progress">
+                                <div class="progress-bar" id="progress-bar-3" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Avatar Items Card -->
+                <div class="card mt-lg animate-fade-in-up">
+                    <div class="card-body">
+                        <h3 class="mb-lg">🎁 Менің заттарым</h3>
+                        <div class="avatar-items-grid" id="owned-items">
+                            <div class="alert alert-info">Дүкеннен заттар сатып алыңыз!</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/auth.js"></script>
+    <script src="../js/gamification.js"></script>
+    <script>
+        checkAuth();
+
+        // Load user data
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const stats = JSON.parse(localStorage.getItem('userStats') || '{"level":1,"intellectPoints":0,"coins":20}');
+        const completedProblems = JSON.parse(localStorage.getItem('completedProblems') || '[]');
+        const ownedItems = JSON.parse(localStorage.getItem('ownedItems') || '{"glasses":false,"hat":false,"goldBackground":false,"superCostume":false}');
+
+        // Populate user info
+        if (user.fullName) {
+            document.getElementById('user-fullname').textContent = user.fullName;
+            document.getElementById('edit-fullname').value = user.fullName;
+        }
+        if (user.email) {
+            document.getElementById('edit-email').value = user.email;
+        }
+        if (user.phone) {
+            document.getElementById('edit-phone').value = user.phone;
+        }
+        if (user.school) {
+            document.getElementById('user-school').textContent = user.school;
+            document.getElementById('edit-school').value = user.school;
+        }
+        if (user.city) {
+            document.getElementById('edit-city').value = user.city;
+        }
+        if (user.grade) {
+            document.getElementById('edit-grade').value = user.grade;
+        }
+
+        // Set avatar image
+        const avatar = localStorage.getItem('avatar') || 'bektur';
+        const avatarImages = {
+            'bektur': '../assets/images/bektur.jpg',
+            'nazym': '../assets/images/nazym.jpg'
+        };
+        document.getElementById('avatar-img').src = avatarImages[avatar];
+
+        // Populate stats
+        document.getElementById('stat-level').textContent = stats.level;
+        document.getElementById('stat-points').textContent = stats.intellectPoints;
+        document.getElementById('stat-coins').textContent = stats.coins;
+        document.getElementById('stat-completed').textContent = completedProblems.length;
+
+        // Calculate and show level progress
+        const levelInfo = calculateLevel(stats.intellectPoints);
+        const progressPercentage = (levelInfo.currentProgress / levelInfo.nextLevelPoints) * 100;
+        document.getElementById('level-progress').style.width = `${progressPercentage}%`;
+        document.getElementById('progress-text').textContent = `${levelInfo.currentProgress} / ${levelInfo.nextLevelPoints} ұпай`;
+
+        // Update topic progress
+        for (let i = 1; i <= 3; i++) {
+            const topicId = `topic${i}`;
+            const completed = completedProblems.filter(p => p.startsWith(topicId)).length;
+            const percentage = (completed / 20) * 100;
+
+            document.getElementById(`progress-count-${i}`).textContent = `${completed} / 20`;
+            document.getElementById(`progress-bar-${i}`).style.width = `${percentage}%`;
+        }
+
+        // Show owned items
+        const itemNames = {
+            'glasses': '🕶️ Көзілдірік',
+            'hat': '🎩 Бас киім',
+            'goldBackground': '⭐ Алтын фон',
+            'superCostume': '🦸 Супер костюм'
+        };
+
+        const ownedItemsList = Object.keys(ownedItems).filter(key => ownedItems[key]);
+        if (ownedItemsList.length > 0) {
+            let itemsHTML = '<div class="owned-items-list">';
+            ownedItemsList.forEach(item => {
+                itemsHTML += `<div class="owned-item">${itemNames[item]}</div>`;
+            });
+            itemsHTML += '</div>';
+            document.getElementById('owned-items').innerHTML = itemsHTML;
+        }
+
+        function saveProfile() {
+            const updatedUser = {
+                ...user,
+                fullName: document.getElementById('edit-fullname').value,
+                email: document.getElementById('edit-email').value,
+                city: document.getElementById('edit-city').value,
+                grade: parseInt(document.getElementById('edit-grade').value),
+                school: document.getElementById('edit-school').value
+            };
+
+            localStorage.setItem('user', JSON.stringify(updatedUser));
+
+            // Update display
+            document.getElementById('user-fullname').textContent = updatedUser.fullName;
+            document.getElementById('user-school').textContent = updatedUser.school;
+
+            showToast('success', 'Профиль сәтті жаңартылды!');
+        }
+
+        function changeAvatar() {
+            const currentAvatar = localStorage.getItem('avatar') || 'bektur';
+            const newAvatar = currentAvatar === 'bektur' ? 'nazym' : 'bektur';
+
+            localStorage.setItem('avatar', newAvatar);
+            document.getElementById('avatar-img').src = avatarImages[newAvatar];
+
+            showToast('success', `Аватар ${newAvatar === 'bektur' ? 'Бектұр' : 'Назым'} болып өзгертілді!`);
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="kk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Рейтинг | QosQanat</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container navbar-container">
+            <a href="home.html" class="navbar-brand">
+                <img src="../assets/images/logo.png" alt="QosQanat">
+                <span>QosQanat</span>
+            </a>
+
+            <ul class="navbar-menu">
+                <li><a href="home.html" class="navbar-link">Басты</a></li>
+                <li><a href="learning.html" class="navbar-link">Оқу</a></li>
+                <li><a href="rating.html" class="navbar-link active">Рейтинг</a></li>
+                <li><a href="shop.html" class="navbar-link">Дүкен</a></li>
+                <li><a href="profile.html" class="navbar-link">Профиль</a></li>
+                <li><button onclick="logout()" class="btn btn-sm btn-outline">Шығу</button></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container py-lg">
+        <h1 class="text-center mb-xl animate-fade-in">🏆 Рейтинг</h1>
+
+        <!-- Rating Tabs -->
+        <div class="rating-tabs mb-lg">
+            <button class="rating-tab active" onclick="switchRatingTab('city')">
+                🏙️ Қала бойынша
+            </button>
+            <button class="rating-tab" onclick="switchRatingTab('national')">
+                🇰🇿 Қазақстан бойынша
+            </button>
+        </div>
+
+        <!-- City Rating View -->
+        <div id="city-rating-view" class="rating-view">
+            <div class="card mb-lg">
+                <div class="card-body">
+                    <div class="form-group">
+                        <label>Қаланы таңдаңыз:</label>
+                        <select class="form-control" id="city-select" onchange="loadCityRating()">
+                            <option value="Астана">Астана</option>
+                            <option value="Алматы">Алматы</option>
+                            <option value="Шымкент">Шымкент</option>
+                            <option value="Қарағанды">Қарағанды</option>
+                            <option value="Ақтөбе">Ақтөбе</option>
+                            <option value="Тараз">Тараз</option>
+                            <option value="Павлодар">Павлодар</option>
+                            <option value="Семей">Семей</option>
+                            <option value="Өскемен">Өскемен</option>
+                            <option value="Орал">Орал</option>
+                            <option value="Ақтау">Ақтау</option>
+                            <option value="Атырау">Атырау</option>
+                            <option value="Қостанай">Қостанай</option>
+                            <option value="Қызылорда">Қызылорда</option>
+                            <option value="Петропавл">Петропавл</option>
+                            <option value="Талдықорған">Талдықорған</option>
+                            <option value="Түркістан">Түркістан</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <div id="city-leaderboard"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- National Rating View -->
+        <div id="national-rating-view" class="rating-view" style="display: none;">
+            <div class="card">
+                <div class="card-body">
+                    <div id="national-leaderboard"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/auth.js"></script>
+    <script src="../js/gamification.js"></script>
+    <script>
+        checkAuth();
+
+        const user = JSON.parse(localStorage.getItem('user') || '{}');
+        const userCity = user.city || 'Астана';
+
+        // Set user's city as selected
+        document.getElementById('city-select').value = userCity;
+
+        // Demo leaderboard data (replace with API call later)
+        const demoLeaderboard = {
+            'Астана': [
+                { rank: 1, fullName: 'Нұрсұлтан Әбдіғалиев', school: '№45 мектебі', points: 950, level: 4, isCurrentUser: false },
+                { rank: 2, fullName: 'Айдар Серікбаев', school: '№1 НЗМ', points: 850, level: 4, isCurrentUser: false },
+                { rank: 3, fullName: 'Динара Қасымова', school: '№28 гимназиясы', points: 720, level: 3, isCurrentUser: false },
+                { rank: 4, fullName: 'Асхат Тұрсынов', school: '№12 мектебі', points: 680, level: 3, isCurrentUser: false },
+                { rank: 5, fullName: 'Әсем Нұрланова', school: '№3 гимназиясы', points: 650, level: 3, isCurrentUser: false },
+            ],
+            'Алматы': [
+                { rank: 1, fullName: 'Жанар Қалиева', school: '№28 гимназиясы', points: 920, level: 4, isCurrentUser: false },
+                { rank: 2, fullName: 'Бекзат Мұратов', school: '№1 ТАЛ', points: 880, level: 4, isCurrentUser: false },
+                { rank: 3, fullName: 'Әлия Сейітова', school: '№121 мектебі', points: 750, level: 3, isCurrentUser: false },
+            ],
+            'Шымкент': [
+                { rank: 1, fullName: 'Айгерім Темірбекова', school: '№12 гимназиясы', points: 850, level: 4, isCurrentUser: false },
+                { rank: 2, fullName: 'Дәурен Әбдіқадыров', school: '№45 мектебі', points: 780, level: 3, isCurrentUser: false },
+            ],
+            'Қарағанды': [
+                { rank: 1, fullName: 'Ерлан Досмұхамбетов', school: '№7 мектебі', points: 860, level: 4, isCurrentUser: false },
+                { rank: 2, fullName: 'Мадина Есенова', school: '№34 гимназиясы', points: 790, level: 3, isCurrentUser: false },
+            ]
+        };
+
+        // Add current user to their city's leaderboard
+        const currentStats = JSON.parse(localStorage.getItem('userStats') || '{"level":1,"intellectPoints":0,"coins":20}');
+        if (user.fullName && user.city && demoLeaderboard[user.city]) {
+            const existingIndex = demoLeaderboard[user.city].findIndex(u => u.fullName === user.fullName);
+            if (existingIndex === -1) {
+                demoLeaderboard[user.city].push({
+                    rank: 0,
+                    fullName: user.fullName,
+                    school: user.school || 'Мектеп',
+                    points: currentStats.intellectPoints,
+                    level: currentStats.level,
+                    isCurrentUser: true
+                });
+            }
+        }
+
+        // Sort and recalculate ranks
+        Object.keys(demoLeaderboard).forEach(city => {
+            demoLeaderboard[city].sort((a, b) => b.points - a.points);
+            demoLeaderboard[city].forEach((student, index) => {
+                student.rank = index + 1;
+            });
+        });
+
+        function switchRatingTab(tab) {
+            // Update tab buttons
+            document.querySelectorAll('.rating-tab').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Show/hide rating views
+            if (tab === 'city') {
+                document.getElementById('city-rating-view').style.display = 'block';
+                document.getElementById('national-rating-view').style.display = 'none';
+                loadCityRating();
+            } else {
+                document.getElementById('city-rating-view').style.display = 'none';
+                document.getElementById('national-rating-view').style.display = 'block';
+                loadNationalRating();
+            }
+        }
+
+        function loadCityRating() {
+            const selectedCity = document.getElementById('city-select').value;
+            const leaderboard = demoLeaderboard[selectedCity] || [];
+
+            if (leaderboard.length === 0) {
+                document.getElementById('city-leaderboard').innerHTML = `
+                    <div class="alert alert-info text-center">
+                        <p>Бұл қалада әлі оқушылар жоқ</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '<div class="leaderboard-table"><table class="table">';
+            html += `
+                <thead>
+                    <tr>
+                        <th>Орын</th>
+                        <th>Аты-жөні</th>
+                        <th>Мектеп</th>
+                        <th>Деңгей</th>
+                        <th>Ұпай</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+
+            leaderboard.forEach(student => {
+                const medal = student.rank === 1 ? '🥇' : student.rank === 2 ? '🥈' : student.rank === 3 ? '🥉' : '';
+                const highlightClass = student.isCurrentUser ? 'leaderboard-current-user' : '';
+
+                html += `
+                    <tr class="${highlightClass}">
+                        <td><strong>${medal} ${student.rank}</strong></td>
+                        <td>${student.fullName} ${student.isCurrentUser ? '(Сіз)' : ''}</td>
+                        <td>${student.school}</td>
+                        <td>
+                            <span class="level-badge">⭐ ${student.level}</span>
+                        </td>
+                        <td><strong>${student.points}</strong></td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table></div>';
+            document.getElementById('city-leaderboard').innerHTML = html;
+        }
+
+        function loadNationalRating() {
+            // Combine all city leaderboards
+            let allStudents = [];
+            Object.values(demoLeaderboard).forEach(cityLeaderboard => {
+                allStudents = allStudents.concat(cityLeaderboard.map(s => ({ ...s, city: s.city })));
+            });
+
+            // Add city info
+            Object.keys(demoLeaderboard).forEach(city => {
+                demoLeaderboard[city].forEach(student => {
+                    student.city = city;
+                });
+            });
+
+            // Flatten and sort
+            allStudents = [];
+            Object.entries(demoLeaderboard).forEach(([city, students]) => {
+                students.forEach(student => {
+                    allStudents.push({ ...student, city });
+                });
+            });
+
+            allStudents.sort((a, b) => b.points - a.points);
+            allStudents.forEach((student, index) => {
+                student.rank = index + 1;
+            });
+
+            // Take top 50
+            const topStudents = allStudents.slice(0, 50);
+
+            let html = '<div class="leaderboard-table"><table class="table">';
+            html += `
+                <thead>
+                    <tr>
+                        <th>Орын</th>
+                        <th>Аты-жөні</th>
+                        <th>Қала</th>
+                        <th>Мектеп</th>
+                        <th>Деңгей</th>
+                        <th>Ұпай</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+
+            topStudents.forEach(student => {
+                const medal = student.rank === 1 ? '🥇' : student.rank === 2 ? '🥈' : student.rank === 3 ? '🥉' : '';
+                const highlightClass = student.isCurrentUser ? 'leaderboard-current-user' : '';
+
+                html += `
+                    <tr class="${highlightClass}">
+                        <td><strong>${medal} ${student.rank}</strong></td>
+                        <td>${student.fullName} ${student.isCurrentUser ? '(Сіз)' : ''}</td>
+                        <td>${student.city}</td>
+                        <td>${student.school}</td>
+                        <td>
+                            <span class="level-badge">⭐ ${student.level}</span>
+                        </td>
+                        <td><strong>${student.points}</strong></td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table></div>';
+            document.getElementById('national-leaderboard').innerHTML = html;
+        }
+
+        // Load city rating by default
+        loadCityRating();
+    </script>
+</body>
+
+</html>

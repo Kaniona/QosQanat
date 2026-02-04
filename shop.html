@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="kk">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Дүкен | QosQanat</title>
+    <link rel="stylesheet" href="../css/styles.css">
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container navbar-container">
+            <a href="home.html" class="navbar-brand">
+                <img src="../assets/images/logo.png" alt="QosQanat">
+                <span>QosQanat</span>
+            </a>
+
+            <ul class="navbar-menu">
+                <li><a href="home.html" class="navbar-link">Басты</a></li>
+                <li><a href="learning.html" class="navbar-link">Оқу</a></li>
+                <li><a href="rating.html" class="navbar-link">Рейтинг</a></li>
+                <li><a href="shop.html" class="navbar-link active">Дүкен</a></li>
+                <li><a href="profile.html" class="navbar-link">Профиль</a></li>
+                <li><button onclick="logout()" class="btn btn-sm btn-outline">Шығу</button></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container py-lg">
+        <!-- User Coins Display -->
+        <div class="card mb-xl animate-fade-in-down"
+            style="background: linear-gradient(135deg, #fee140 0%, #fa709a 100%);">
+            <div class="card-body text-center">
+                <div style="font-size: 60px; margin-bottom: 10px;">🪙</div>
+                <h2 class="mb-sm">Менің Coin-дарым</h2>
+                <div style="font-size: 48px; font-weight: bold; color: white;" id="user-coins">20</div>
+                <p class="mt-sm" style="color: rgba(255,255,255,0.9);">Деңгей өткенде coin аласыз!</p>
+            </div>
+        </div>
+
+        <h1 class="text-center mb-xl animate-fade-in">🛒 Дүкен</h1>
+
+        <!-- Shop Items Grid -->
+        <div class="grid grid-2">
+            <!-- Item 1: Glasses -->
+            <div class="card shop-item-card animate-fade-in-up">
+                <div class="card-body">
+                    <div class="shop-item-icon">🕶️</div>
+                    <h3 class="shop-item-title">Көзілдірік</h3>
+                    <p class="shop-item-description">Стильді көзілдірік аватарыңызға!</p>
+                    <div class="shop-item-price">
+                        <span class="price-amount">50</span>
+                        <span class="price-currency">🪙 coin</span>
+                    </div>
+                    <button class="btn btn-primary btn-block mt-md" id="btn-glasses"
+                        onclick="purchaseItem('glasses', 50)">
+                        Сатып алу
+                    </button>
+                    <div id="status-glasses" class="shop-item-status"></div>
+                </div>
+            </div>
+
+            <!-- Item 2: Hat -->
+            <div class="card shop-item-card animate-fade-in-up">
+                <div class="card-body">
+                    <div class="shop-item-icon">🎩</div>
+                    <h3 class="shop-item-title">Бас киім</h3>
+                    <p class="shop-item-description">Сәнді бас киім аватарыңызға!</p>
+                    <div class="shop-item-price">
+                        <span class="price-amount">70</span>
+                        <span class="price-currency">🪙 coin</span>
+                    </div>
+                    <button class="btn btn-primary btn-block mt-md" id="btn-hat" onclick="purchaseItem('hat', 70)">
+                        Сатып алу
+                    </button>
+                    <div id="status-hat" class="shop-item-status"></div>
+                </div>
+            </div>
+
+            <!-- Item 3: Gold Background -->
+            <div class="card shop-item-card animate-fade-in-up">
+                <div class="card-body">
+                    <div class="shop-item-icon">⭐</div>
+                    <h3 class="shop-item-title">Алтын фон</h3>
+                    <p class="shop-item-description">Премиум алтын фон аватарыңызға!</p>
+                    <div class="shop-item-price">
+                        <span class="price-amount">100</span>
+                        <span class="price-currency">🪙 coin</span>
+                    </div>
+                    <button class="btn btn-primary btn-block mt-md" id="btn-goldBackground"
+                        onclick="purchaseItem('goldBackground', 100)">
+                        Сатып алу
+                    </button>
+                    <div id="status-goldBackground" class="shop-item-status"></div>
+                </div>
+            </div>
+
+            <!-- Item 4: Super Costume -->
+            <div class="card shop-item-card animate-fade-in-up">
+                <div class="card-body">
+                    <div class="shop-item-icon">🦸</div>
+                    <h3 class="shop-item-title">Супер костюм</h3>
+                    <p class="shop-item-description">Ерекше супер костюм аватарыңызға!</p>
+                    <div class="shop-item-price">
+                        <span class="price-amount">150</span>
+                        <span class="price-currency">🪙 coin</span>
+                    </div>
+                    <button class="btn btn-primary btn-block mt-md" id="btn-superCostume"
+                        onclick="purchaseItem('superCostume', 150)">
+                        Сатып алу
+                    </button>
+                    <div id="status-superCostume" class="shop-item-status"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Avatar Preview Section -->
+        <div class="card mt-xl animate-fade-in-up">
+            <div class="card-body">
+                <h3 class="text-center mb-lg">👀 Аватар алдын-ала қарау</h3>
+                <div class="avatar-preview-container">
+                    <div class="avatar-preview-large" id="avatar-preview">
+                        <img src="../assets/images/bektur.jpg" alt="Avatar" id="preview-avatar-img">
+                        <div class="avatar-overlay-items" id="overlay-items"></div>
+                    </div>
+                    <div class="avatar-preview-items" id="preview-items-list">
+                        <p class="text-muted">Сатып алған заттарыңыз мұнда көрінеді</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- How to Earn Coins -->
+        <div class="card mt-xl animate-fade-in-up"
+            style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <div class="card-body text-center">
+                <h3 class="mb-md">💡 Coin қалай жинауға болады?</h3>
+                <div class="grid grid-3" style="color: white;">
+                    <div>
+                        <div style="font-size: 40px; margin-bottom: 10px;">📚</div>
+                        <h4>Есеп шығар</h4>
+                        <p style="opacity: 0.9;">Математика есептерін шығарып ұпай жина</p>
+                    </div>
+                    <div>
+                        <div style="font-size: 40px; margin-bottom: 10px;">⬆️</div>
+                        <h4>Деңгей өт</h4>
+                        <p style="opacity: 0.9;">Әр жаңа деңгейге өткенде coin аласыз</p>
+                    </div>
+                    <div>
+                        <div style="font-size: 40px; margin-bottom: 10px;">🛒</div>
+                        <h4>Зат сатып ал</h4>
+                        <p style="opacity: 0.9;">Coin-дарыңызды дүкенде жұмсаңыз</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../js/auth.js"></script>
+    <script src="../js/gamification.js"></script>
+    <script>
+        checkAuth();
+
+        // Load user data
+        const stats = JSON.parse(localStorage.getItem('userStats') || '{"level":1,"intellectPoints":0,"coins":20}');
+        const ownedItems = JSON.parse(localStorage.getItem('ownedItems') || '{"glasses":false,"hat":false,"goldBackground":false,"superCostume":false}');
+        const avatar = localStorage.getItem('avatar') || 'bektur';
+
+        // Display coins
+        document.getElementById('user-coins').textContent = stats.coins;
+
+        // Set avatar preview
+        const avatarImages = {
+            'bektur': '../assets/images/bektur.jpg',
+            'nazym': '../assets/images/nazym.jpg'
+        };
+        document.getElementById('preview-avatar-img').src = avatarImages[avatar];
+
+        // Update item statuses
+        const itemNames = {
+            'glasses': 'Көзілдірік',
+            'hat': 'Бас киім',
+            'goldBackground': 'Алтын фон',
+            'superCostume': 'Супер костюм'
+        };
+
+        const itemIcons = {
+            'glasses': '🕶️',
+            'hat': '🎩',
+            'goldBackground': '⭐',
+            'superCostume': '🦸'
+        };
+
+        // Update buttons based on ownership
+        Object.keys(ownedItems).forEach(itemId => {
+            if (ownedItems[itemId]) {
+                const button = document.getElementById(`btn-${itemId}`);
+                const status = document.getElementById(`status-${itemId}`);
+
+                button.disabled = true;
+                button.textContent = '✓ Сатып алынған';
+                button.classList.remove('btn-primary');
+                button.classList.add('btn-success');
+
+                status.innerHTML = '<div class="alert alert-success mt-md">Сізде бар!</div>';
+            }
+        });
+
+        // Show owned items in preview
+        updatePreview();
+
+        function updatePreview() {
+            const ownedList = Object.keys(ownedItems).filter(key => ownedItems[key]);
+
+            if (ownedList.length > 0) {
+                let itemsHTML = '<div class="owned-items-preview">';
+                ownedList.forEach(item => {
+                    itemsHTML += `<div class="preview-item">${itemIcons[item]} ${itemNames[item]}</div>`;
+                });
+                itemsHTML += '</div>';
+                document.getElementById('preview-items-list').innerHTML = itemsHTML;
+
+                // Add visual overlay (simplified)
+                let overlayHTML = '';
+                if (ownedItems.goldBackground) {
+                    overlayHTML += '<div class="avatar-gold-bg"></div>';
+                }
+                document.getElementById('overlay-items').innerHTML = overlayHTML;
+            }
+        }
+
+        function purchaseItem(itemId, price) {
+            // Check if already owned
+            if (ownedItems[itemId]) {
+                showToast('info', 'Сіз бұл затты сатып алғансыз!');
+                return;
+            }
+
+            // Check if enough coins
+            if (stats.coins < price) {
+                showToast('error', `Coin жеткіліксіз! Сізде ${stats.coins} coin бар, керегі ${price} coin.`);
+                return;
+            }
+
+            // Purchase item
+            stats.coins -= price;
+            ownedItems[itemId] = true;
+
+            // Save to localStorage
+            localStorage.setItem('userStats', JSON.stringify(stats));
+            localStorage.setItem('ownedItems', JSON.stringify(ownedItems));
+
+            // Update UI
+            document.getElementById('user-coins').textContent = stats.coins;
+
+            const button = document.getElementById(`btn-${itemId}`);
+            const status = document.getElementById(`status-${itemId}`);
+
+            button.disabled = true;
+            button.textContent = '✓ Сатып алынған';
+            button.classList.remove('btn-primary');
+            button.classList.add('btn-success');
+
+            status.innerHTML = '<div class="alert alert-success mt-md animate-bounce-in">Сатып алынды! ✓</div>';
+
+            // Update preview
+            updatePreview();
+
+            // Show success message
+            showToast('success', `${itemNames[itemId]} сәтті сатып алынды!`);
+
+            // Show celebration
+            showPurchaseCelebration(itemIcons[itemId], itemNames[itemId]);
+        }
+
+        function showPurchaseCelebration(icon, name) {
+            const modal = document.createElement('div');
+            modal.className = 'modal show';
+            modal.innerHTML = `
+                <div class="modal-content animate-bounce-in">
+                    <div class="modal-body text-center">
+                        <div style="font-size: 100px; margin-bottom: 20px;">${icon}</div>
+                        <h2 class="text-primary">Құттықтаймыз!</h2>
+                        <p class="text-xl">"${name}" сатып алдыңыз!</p>
+                        <p class="text-muted">Профильіңізде көре аласыз</p>
+                        <button class="btn btn-primary btn-lg mt-lg" onclick="this.closest('.modal').remove()">
+                            Жарайды
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+
+            // Auto-close after 3 seconds
+            setTimeout(() => {
+                if (modal.parentElement) {
+                    modal.remove();
+                }
+            }, 3000);
+        }
+    </script>
+</body>
+
+</html>
