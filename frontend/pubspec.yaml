@@ -1,0 +1,56 @@
+name: qosqanat_2_0
+description: "QosQanat 2.0 — Қазақстан мектеп оқушыларына арналған геймификацияланған білім беру қосымшасы (offline, local cache)."
+publish_to: 'none'
+version: 2.0.0+1
+
+environment:
+  sdk: ^3.11.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management
+  flutter_riverpod: ^2.6.1
+
+  # Navigation
+  go_router: ^14.8.1
+
+  # Local storage
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  shared_preferences: ^2.5.2
+  path_provider: ^2.1.5
+
+  # UI / animation
+  google_fonts: ^6.2.1
+  flutter_svg: ^2.0.17
+  flutter_animate: ^4.5.2
+  lottie: ^3.3.1
+  confetti: ^0.8.0
+
+  # Media
+  image_picker: ^1.1.2
+  audioplayers: ^6.1.0
+
+  # Misc
+  intl: ^0.20.2
+  cupertino_icons: ^1.0.8
+
+  # Security (құпиясөз хэші)
+  crypto: ^3.0.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - .env
+    - assets/brand/
+    - assets/ornek/
+    - assets/mascots/
+    - assets/sounds/

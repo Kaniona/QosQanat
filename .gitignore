@@ -1,0 +1,28 @@
+# ── Құпиялар ──────────────────────────────────────────────
+# Назар аударыңыз: frontend/.env — Flutter asset (тек бос placeholder),
+# сондықтан ол git-те сақталады. Тек backend құпиялары еленбейді.
+backend/.env
+*.env.local
+
+# ── Backend (Node.js) ─────────────────────────────────────
+backend/node_modules/
+backend/logs/
+backend/*.log
+npm-debug.log*
+
+# ── Frontend (Flutter / Dart) ─────────────────────────────
+frontend/build/
+frontend/.dart_tool/
+frontend/.flutter-plugins-dependencies
+frontend/.flutter-plugins
+frontend/.packages
+frontend/.pub-cache/
+frontend/.pub/
+**/doc/api/
+*.iml
+
+# ── ОС / Редактор ─────────────────────────────────────────
+.DS_Store
+.idea/
+.vscode/
+*.swp

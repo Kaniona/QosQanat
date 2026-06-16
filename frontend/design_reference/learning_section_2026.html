@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="kk">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>QosQanat 2.0 — Learning Section (2026)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<style>
+/* ============================================================
+   QosQanat 2.0 — "Eagle Wings / Steppe Sky Ascension"
+   Learning section, 2026 design language.
+   Tokens mirror lib/core/theme/app_colors.dart exactly.
+   ============================================================ */
+:root{
+  --eagle:#4A6CF7; --eagle-light:#7B96FF; --eagle-dark:#2F4ECC; --eagle-surface:#EDF1FF;
+  --gold:#F5A623; --gold-light:#FFC459; --gold-dark:#D4860A; --gold-surface:#FFF4E0;
+  --purple:#7B61FF; --purple-light:#A593FF; --purple-dark:#5840CC; --purple-surface:#F1EDFF;
+  --jade:#00C48C; --jade-light:#5BE3BC; --jade-dark:#009B6E; --jade-surface:#E3FBF3;
+  --coral:#FF4757; --coral-light:#FF8089; --coral-surface:#FFEBED;
+  --sunset:#FF8C42; --rose:#FF6B9D;
+  --ink:#1A1A4E; --bg:#FAFBFF; --surface:#FFFFFF; --surface-muted:#F2F4FA;
+  --t1:#1A1A4E; --t2:#5A5E80; --t3:#9AA0BD; --on-dark:#FFFFFF;
+  --border:#E4E8F2; --divider:#EDEFF6;
+  --night:#0F0F2E; /* dark mode base */
+  --r-s:12px; --r-m:16px; --r-l:20px; --r-xl:28px; --r-pill:999px;
+  --noise:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased;}
+body{
+  font-family:'Nunito',system-ui,sans-serif;
+  background:
+    radial-gradient(900px 600px at 15% -5%, #20204e 0%, transparent 55%),
+    radial-gradient(900px 700px at 100% 100%, #2a1c52 0%, transparent 55%),
+    #0a0a1f;
+  color:#fff; padding:48px 28px 80px;
+}
+.page-head{max-width:1700px;margin:0 auto 40px;}
+.page-head h1{font-family:'Baloo 2';font-weight:800;font-size:34px;letter-spacing:-.5px;
+  background:linear-gradient(120deg,#7B96FF,#A593FF 50%,#FFC459);-webkit-background-clip:text;background-clip:text;color:transparent;}
+.page-head p{color:#9aa0d0;margin-top:8px;max-width:760px;line-height:1.55;font-size:15px;}
+.legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:18px;}
+.legend span{font-size:12px;font-weight:700;padding:7px 13px;border-radius:999px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:#cfd2f0;}
+.legend span b{color:#fff;}
+
+.gallery{display:flex;flex-wrap:wrap;gap:54px 44px;justify-content:center;align-items:flex-start;max-width:1760px;margin:0 auto;}
+.frame-wrap{display:flex;flex-direction:column;align-items:center;gap:16px;}
+.frame-cap{text-align:center;}
+.frame-cap .num{font-family:'Baloo 2';font-weight:800;font-size:13px;color:#0a0a1f;background:linear-gradient(120deg,#7B96FF,#A593FF);
+  width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;margin-bottom:8px;}
+.frame-cap h2{font-family:'Baloo 2';font-weight:700;font-size:17px;color:#fff;}
+.frame-cap p{color:#8c90c0;font-size:12.5px;margin-top:3px;max-width:360px;}
+
+/* ---- the device ---- */
+.phone{
+  width:390px;height:844px;border-radius:46px;position:relative;overflow:hidden;
+  background:var(--bg);
+  box-shadow:0 2px 0 4px #0e0e22, 0 0 0 13px #1b1b34, 0 40px 90px -20px rgba(0,0,0,.8);
+  isolation:isolate;
+}
+.phone.dark{background:var(--night);}
+.notch{position:absolute;top:0;left:50%;transform:translateX(-50%);width:130px;height:30px;background:#0e0e22;border-radius:0 0 18px 18px;z-index:90;}
+.statusbar{position:absolute;top:0;left:0;right:0;height:48px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 26px;font-size:13px;font-weight:800;z-index:85;color:var(--ink);}
+.statusbar.on-dark{color:#fff;}
+.statusbar .dots{display:flex;gap:5px;align-items:center;}
+.scroll{position:absolute;inset:0;overflow-y:auto;scrollbar-width:none;}
+.scroll::-webkit-scrollbar{display:none;}
+
+/* ============ CLAYMORPHISM ============ */
+.clay{
+  border-radius:var(--r-l);
+  background:linear-gradient(145deg,#ffffff,#eef1fb);
+  box-shadow:
+    7px 7px 16px rgba(26,26,78,.16),
+    -5px -5px 14px rgba(255,255,255,.95),
+    inset 2px 2px 5px rgba(255,255,255,.9),
+    inset -5px -5px 11px rgba(26,26,78,.07);
+}
+/* colored clay helper: pass --c1/--c2/--sh */
+.clay-c{
+  border-radius:var(--r-l);
+  background:linear-gradient(145deg,var(--c1),var(--c2));
+  box-shadow:
+    6px 8px 18px var(--sh),
+    -4px -4px 12px rgba(255,255,255,.45),
+    inset 2px 2px 6px rgba(255,255,255,.55),
+    inset -5px -6px 12px rgba(0,0,0,.18);
+}
+.pressed{box-shadow:
+    2px 2px 7px rgba(26,26,78,.16),
+    inset 4px 4px 9px rgba(0,0,0,.22),
+    inset -3px -3px 8px rgba(255,255,255,.4) !important;
+  transform:translateY(2px);}
+
+/* ============ GLASSMORPHISM 2.0 ============ */
+.glass{
+  position:relative;border-radius:var(--r-xl);
+  background:linear-gradient(150deg,rgba(255,255,255,.72),rgba(255,255,255,.42));
+  backdrop-filter:blur(22px) saturate(165%);-webkit-backdrop-filter:blur(22px) saturate(165%);
+  border:1px solid rgba(255,255,255,.65);
+  box-shadow:0 10px 34px -8px rgba(26,26,78,.28), inset 0 1px 0 rgba(255,255,255,.9);
+}
+.glass::after{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--noise);opacity:.05;pointer-events:none;mix-blend-mode:overlay;}
+.glass-dark{
+  position:relative;border-radius:var(--r-xl);
+  background:linear-gradient(150deg,rgba(60,60,120,.42),rgba(20,20,55,.32));
+  backdrop-filter:blur(24px) saturate(150%);-webkit-backdrop-filter:blur(24px) saturate(150%);
+  border:1px solid rgba(150,150,255,.22);
+  box-shadow:0 12px 40px -8px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.18);
+}
+.glass-dark::after{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--noise);opacity:.07;pointer-events:none;}
+
+.aurora{position:absolute;inset:0;z-index:0;overflow:hidden;}
+.aurora i{position:absolute;border-radius:50%;filter:blur(55px);opacity:.7;}
+
+/* progress ring */
+.ring{position:relative;width:54px;height:54px;border-radius:50%;display:grid;place-items:center;}
+.ring small{font-family:'Baloo 2';font-weight:800;font-size:12px;color:var(--ink);}
+
+.row{display:flex;align-items:center;}
+.pill{display:inline-flex;align-items:center;gap:6px;font-weight:800;font-size:13px;border-radius:999px;padding:7px 13px;}
+
+/* HUD chips */
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px 6px 7px;border-radius:999px;font-weight:800;font-size:14px;}
+.chip .ic{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:14px;}
+
+/* map path connector */
+.seg-band{position:relative;padding:6px 16px 30px;}
+.node{width:78px;height:78px;border-radius:50%;display:grid;place-items:center;position:relative;font-size:30px;cursor:pointer;}
+.node .lvl{position:absolute;bottom:-6px;right:-4px;width:26px;height:26px;border-radius:50%;background:#fff;display:grid;place-items:center;
+  font-family:'Baloo 2';font-weight:800;font-size:12px;color:var(--ink);box-shadow:0 3px 8px rgba(26,26,78,.25);}
+.node.locked{filter:grayscale(.9) brightness(1.05);opacity:.85;}
+.node.current::before{content:"";position:absolute;inset:-12px;border-radius:50%;background:radial-gradient(circle,rgba(245,166,35,.55),transparent 70%);z-index:-1;animation:pulse 2.2s infinite;}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:.8}50%{transform:scale(1.18);opacity:.35}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+
+.you-marker{position:absolute;left:50%;transform:translateX(-50%);z-index:20;display:flex;flex-direction:column;align-items:center;animation:float 3s ease-in-out infinite;}
+.you-marker .tag{font-family:'Baloo 2';font-weight:800;font-size:11px;color:#fff;background:linear-gradient(135deg,var(--gold-light),var(--gold-dark));
+  padding:4px 11px;border-radius:999px;box-shadow:0 5px 14px rgba(212,134,10,.5);white-space:nowrap;}
+.you-marker .tip{width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:7px solid var(--gold);margin-top:-1px;}
+
+.divider-banner{margin:10px 18px;padding:14px 16px;text-align:center;border-radius:var(--r-l);position:relative;overflow:hidden;}
+.oyu{height:8px;background-image:repeating-linear-gradient(45deg,currentColor 0 5px,transparent 5px 12px);opacity:.5;}
+
+.btn{border:none;width:100%;padding:17px;border-radius:var(--r-l);font-family:'Baloo 2';font-weight:800;font-size:17px;cursor:pointer;color:#fff;}
+
+.fab-assistant{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;font-size:34px;}
+
+/* answer option clay */
+.opt{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:var(--r-l);font-weight:800;font-size:16px;color:var(--ink);cursor:pointer;}
+.opt .key{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-family:'Baloo 2';font-size:15px;background:rgba(74,108,247,.12);color:var(--eagle);}
+
+.floatxp{position:absolute;font-family:'Baloo 2';font-weight:800;color:var(--gold-dark);font-size:18px;}
+
+.heart{font-size:18px;}
+.heart.off{filter:grayscale(1);opacity:.35;}
+
+.star{font-size:34px;}
+.confetti{position:absolute;width:9px;height:14px;border-radius:2px;opacity:.9;}
+
+/* bento */
+.bento{display:grid;grid-template-columns:1fr 1fr;gap:13px;padding:0 18px;}
+.bento .big{grid-column:1 / -1;}
+.subj{padding:16px;border-radius:var(--r-l);position:relative;overflow:hidden;cursor:pointer;}
+.subj .ic3d{font-size:34px;filter:drop-shadow(0 6px 8px rgba(0,0,0,.18));}
+
+.sheet-grade{display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:var(--r-m);margin-bottom:9px;}
+
+.dark .clay{background:linear-gradient(145deg,#26264f,#191938);
+  box-shadow:7px 7px 18px rgba(0,0,0,.5),-4px -4px 12px rgba(90,90,160,.12),inset 2px 2px 5px rgba(160,160,255,.12),inset -5px -5px 11px rgba(0,0,0,.4);}
+.dark{color:#e9eaff;}
+</style>
+</head>
+<body>
+
+<div class="page-head">
+  <h1>QosQanat 2.0 — Оқу бөлімі · 2026</h1>
+  <p>"Eagle Wings / Steppe Sky Ascension" — claymorphism · glassmorphism 2.0 · bento grid · spatial depth ·
+     grade-based access (7-сынып оқушысының көрінісі: 1–7 ашық, 8–11 бұғатталған). Mobile frames 390×844, барлық мәтін қазақ тілінде.</p>
+  <div class="legend">
+    <span><b>Clay</b> · node circles · buttons · cards</span>
+    <span><b>Glass 2.0</b> · headers · sheets · gates</span>
+    <span><b>Bento</b> · subjects + stats</span>
+    <span><b>Ascent</b> · steppe → sky → cosmos</span>
+    <span><b>Grade gate</b> · 7 → 8 🔒</span>
+  </div>
+</div>
+
+<div class="gallery">
+
+<!-- ============================================================
+     FRAME 1 — SUBJECT SELECTION (bento + grade context)
+     ============================================================ -->
+<div class="frame-wrap">
+  <div class="phone">
+    <div class="aurora">
+      <i style="width:300px;height:300px;background:var(--eagle-light);top:-90px;left:-70px;opacity:.45;"></i>
+      <i style="width:260px;height:260px;background:var(--purple-light);top:120px;right:-100px;opacity:.4;"></i>
+      <i style="width:280px;height:280px;background:var(--gold-light);bottom:-80px;left:-40px;opacity:.35;"></i>
+    </div>
+    <div class="notch"></div>
+    <div class="statusbar"><span>9:41</span><div class="dots">📶 🔋</div></div>
+
+    <div class="scroll" style="padding:56px 0 30px;position:relative;z-index:2;">
+      <!-- grade banner glass -->
+      <div class="glass" style="margin:0 18px 18px;padding:16px;display:flex;align-items:center;gap:14px;">
+        <div class="fab-assistant clay-c" style="--c1:var(--eagle-light);--c2:var(--eagle);--sh:rgba(47,78,204,.5);animation:float 3.5s infinite;">🦅</div>
+        <div style="flex:1;">
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:20px;color:var(--ink);">7-сынып оқушысы</div>
+          <div style="font-size:13px;color:var(--t2);font-weight:700;">Сәлем, Айдана! Бүгін нені меңгереміз? 💪</div>
+        </div>
+      </div>
+
+      <!-- overall stat strip -->
+      <div class="row" style="gap:10px;padding:0 18px 16px;">
+        <div class="glass" style="flex:1;padding:12px 14px;">
+          <div style="font-size:11px;font-weight:800;color:var(--t2);">ЖАЛПЫ ДЕҢГЕЙ</div>
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:22px;color:var(--eagle);">24</div>
+        </div>
+        <div class="glass" style="flex:1;padding:12px 14px;">
+          <div style="font-size:11px;font-weight:800;color:var(--t2);">⚡ АҚЫЛ</div>
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:22px;color:var(--purple);">3 480</div>
+        </div>
+        <div class="glass" style="flex:1;padding:12px 14px;">
+          <div style="font-size:11px;font-weight:800;color:var(--t2);">🔥 СЕРИЯ</div>
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:22px;color:var(--sunset);">12</div>
+        </div>
+      </div>
+
+      <div style="padding:0 22px 12px;font-family:'Baloo 2';font-weight:800;font-size:15px;color:var(--ink);">Пәндер</div>
+
+      <!-- BENTO grid -->
+      <div class="bento">
+        <!-- BIG active subject -->
+        <div class="subj big clay-c" style="--c1:var(--eagle-light);--c2:var(--eagle-dark);--sh:rgba(47,78,204,.5);color:#fff;">
+          <div style="position:absolute;top:-30px;right:-20px;font-size:120px;opacity:.16;">📐</div>
+          <div class="pill" style="background:rgba(255,255,255,.22);color:#fff;margin-bottom:14px;">⭐ Жалғастыр</div>
+          <div style="display:flex;align-items:flex-end;justify-content:space-between;">
+            <div>
+              <div class="ic3d" style="font-size:44px;">📐</div>
+              <div style="font-family:'Baloo 2';font-weight:800;font-size:24px;margin-top:6px;">Математика</div>
+              <div style="font-size:12.5px;font-weight:700;opacity:.85;margin-top:2px;">1–7 сынып қолжетімді</div>
+            </div>
+            <div class="ring" style="width:72px;height:72px;background:conic-gradient(#fff 0 154deg,rgba(255,255,255,.25) 154deg 360deg);">
+              <div style="position:absolute;inset:7px;border-radius:50%;background:var(--eagle-dark);display:grid;place-items:center;">
+                <small style="color:#fff;line-height:1.1;text-align:center;">3/7<br><span style="font-size:8px;opacity:.8;">сынып</span></small>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:14px;height:9px;border-radius:99px;background:rgba(255,255,255,.25);overflow:hidden;">
+            <div style="width:43%;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--gold-light),var(--gold));"></div>
+          </div>
+        </div>
+
+        <!-- small subjects -->
+        <div class="subj clay" >
+          <div class="ic3d">🔤</div>
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:16px;color:var(--ink);margin-top:6px;">Қазақ тілі</div>
+          <div style="font-size:11px;font-weight:700;color:var(--t3);">1–7 қолжетімді</div>
+          <div class="row" style="justify-content:space-between;margin-top:10px;">
+            <div style="font-size:12px;font-weight:800;color:var(--jade);">5/7 сынып</div>
+            <div class="ring" style="background:conic-gradient(var(--jade) 0 257deg,var(--jade-surface) 257deg);"><div style="position:absolute;inset:5px;border-radius:50%;background:#fff;"></div><small>71%</small></div>
+          </div>
+        </div>
+
+        <div class="subj clay">
+          <div class="ic3d">🌍</div>
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:16px;color:var(--ink);margin-top:6px;">Ағылшын тілі</div>
+          <div style="font-size:11px;font-weight:700;color:var(--t3);">1–7 қолжетімді</div>
+          <div class="row" style="justify-content:space-between;margin-top:10px;">
+            <div style="font-size:12px;font-weight:800;color:var(--eagle);">2/7 сынып</div>
+            <div class="ring" style="background:conic-gradient(var(--eagle) 0 103deg,var(--eagle-surface) 103deg);"><div style="position:absolute;inset:5px;border-radius:50%;background:#fff;"></div><small>28%</small></div>
+          </div>
+        </div>
+
+        <div class="subj clay">
+          <div class="ic3d">⚛️</div>
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:16px;color:var(--ink);margin-top:6px;">Физика</div>
+          <div style="font-size:11px;font-weight:700;color:var(--t3);">7 сыныптан</div>
+          <div class="row" style="justify-content:space-between;margin-top:10px;">
+            <div style="font-size:12px;font-weight:800;color:var(--purple);">0/1 сынып</div>
+            <div class="ring" style="background:conic-gradient(var(--purple) 0 10deg,var(--purple-surface) 10deg);"><div style="position:absolute;inset:5px;border-radius:50%;background:#fff;"></div><small>0%</small></div>
+          </div>
+        </div>
+
+        <div class="subj clay">
+          <div class="ic3d">💻</div>
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:16px;color:var(--ink);margin-top:6px;">Информатика</div>
+          <div style="font-size:11px;font-weight:700;color:var(--t3);">1–7 қолжетімді</div>
+          <div class="row" style="justify-content:space-between;margin-top:10px;">
+            <div style="font-size:12px;font-weight:800;color:var(--sunset);">4/7 сынып</div>
+            <div class="ring" style="background:conic-gradient(var(--sunset) 0 206deg,var(--sunset-surface,#FFF0E6) 206deg);"><div style="position:absolute;inset:5px;border-radius:50%;background:#fff;"></div><small>57%</small></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="frame-cap"><span class="num">1</span><h2>Пән таңдау · Bento</h2><p>Клей карталар, прогресс сақинасы, "1–7 қолжетімді" сынып ауқымы.</p></div>
+</div>
+
+<!-- ============================================================
+     FRAME 2 — LEARNING MAP (grade-segmented ascent, light)
+     ============================================================ -->
+<div class="frame-wrap">
+  <div class="phone">
+    <div class="notch"></div>
+    <!-- STICKY GLASS HEADER -->
+    <div style="position:absolute;top:0;left:0;right:0;z-index:60;padding:48px 14px 12px;">
+      <div class="glass" style="padding:11px 14px;display:flex;align-items:center;gap:11px;border-radius:var(--r-l);">
+        <div style="font-size:26px;">📐</div>
+        <div style="flex:1;">
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:var(--ink);">Математика</div>
+          <div style="height:7px;border-radius:99px;background:rgba(26,26,78,.1);margin-top:5px;overflow:hidden;">
+            <div style="width:43%;height:100%;background:linear-gradient(90deg,var(--eagle),var(--purple));border-radius:99px;"></div>
+          </div>
+        </div>
+        <div class="pill" style="background:var(--eagle-surface);color:var(--eagle);cursor:pointer;">7-сынып ▾</div>
+        <div class="row" style="gap:2px;"><span class="heart">❤️</span><span class="heart">❤️</span><span class="heart">❤️</span><span class="heart off">❤️</span><span class="heart off">❤️</span></div>
+      </div>
+    </div>
+
+    <div class="scroll" style="z-index:2;">
+      <!-- ===== MISTY FUTURE (locked 11..8) ===== -->
+      <div style="background:linear-gradient(180deg,#1a1a4e,#2b2660 40%,#3a3478);position:relative;padding-top:110px;">
+        <div style="position:absolute;inset:0;background:var(--noise);opacity:.06;"></div>
+        <!-- frosted fog overlay -->
+        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,.25) 60%,rgba(255,255,255,.4));backdrop-filter:blur(3px);"></div>
+        <div style="position:relative;text-align:center;color:var(--ink);font-family:'Baloo 2';font-weight:800;font-size:13px;opacity:.6;padding:6px;">✨ Болашақ сапарың</div>
+
+        <div class="seg-band" style="display:flex;flex-direction:column;align-items:center;gap:26px;opacity:.92;">
+          <div style="text-align:center;position:relative;">
+            <div class="node locked clay-c" style="--c1:#cfd0e6;--c2:#a9abc9;--sh:rgba(0,0,0,.2);">🔒<span class="lvl">11</span></div>
+          </div>
+          <div style="align-self:flex-end;margin-right:60px;"><div class="node locked clay-c" style="--c1:#cfd0e6;--c2:#a9abc9;--sh:rgba(0,0,0,.2);">🔒<span class="lvl">10</span></div></div>
+          <div style="align-self:flex-start;margin-left:60px;"><div class="node locked clay-c" style="--c1:#cfd0e6;--c2:#a9abc9;--sh:rgba(0,0,0,.2);">🔒<span class="lvl">9</span></div></div>
+          <div style="text-align:center;"><div class="node locked clay-c" style="--c1:#d8d3f0;--c2:#b4abe0;--sh:rgba(0,0,0,.2);">🔒<span class="lvl">8</span></div>
+            <div style="font-size:11px;font-weight:800;color:var(--ink);opacity:.7;margin-top:8px;">8-сынып · бұғатталған</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== THE GRADE CEILING gate ===== -->
+      <div style="position:relative;background:linear-gradient(180deg,#3a3478,#4a4a9a);padding:4px 0 0;">
+        <div class="glass" style="margin:0 16px;padding:18px 16px;text-align:center;border-radius:var(--r-xl);position:relative;overflow:hidden;">
+          <div class="oyu" style="color:var(--gold);position:absolute;top:0;left:0;right:0;"></div>
+          <div style="font-size:40px;margin-top:4px;animation:float 3s infinite;">🦅</div>
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:17px;color:var(--ink);margin-top:6px;">8-сынып келесі оқу жылында ашылады! 🔒</div>
+          <div style="font-size:12.5px;font-weight:700;color:var(--t2);margin-top:4px;">Әзірге 7-сыныптың шыңын бағындыр 💪</div>
+          <div class="oyu" style="color:var(--gold);position:absolute;bottom:0;left:0;right:0;"></div>
+        </div>
+        <div style="height:2px;margin:14px 30px 0;background:linear-gradient(90deg,transparent,var(--gold),transparent);box-shadow:0 0 18px 3px var(--gold-light);"></div>
+        <div style="text-align:center;font-family:'Baloo 2';font-weight:800;font-size:12px;color:var(--gold-light);padding:6px;">— ШЫҢ ҚАҚПАСЫ —</div>
+      </div>
+
+      <!-- ===== CURRENT GRADE 7 (cosmos, glowing) ===== -->
+      <div style="position:relative;background:linear-gradient(180deg,#4a4a9a,#5b54b8 50%,#6a5acd);">
+        <div style="position:absolute;inset:0;background:var(--noise);opacity:.05;"></div>
+        <!-- parallax stars -->
+        <div style="position:absolute;top:30px;left:40px;color:#fff;opacity:.7;">✦</div>
+        <div style="position:absolute;top:90px;right:50px;color:#fff;opacity:.5;font-size:12px;">✦</div>
+        <div style="position:absolute;top:200px;left:70px;color:var(--gold-light);opacity:.8;">✦</div>
+
+        <div class="divider-banner glass" style="color:var(--ink);">
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:var(--gold-dark);">⭐ Сенің сыныбың · 7-сынып</div>
+          <div style="font-size:12px;font-weight:700;color:var(--t2);">Қазір осында тұрсың — алға!</div>
+        </div>
+
+        <div class="seg-band" style="display:flex;flex-direction:column;align-items:center;gap:30px;padding-top:8px;position:relative;">
+          <!-- crown final node of grade -->
+          <div style="text-align:center;position:relative;">
+            <div class="node clay-c" style="--c1:var(--gold-light);--c2:var(--gold-dark);--sh:rgba(212,134,10,.6);">👑<span class="lvl">7.8</span></div>
+            <div style="font-size:10px;font-weight:800;color:#fff;margin-top:6px;">Финал сынағы</div>
+          </div>
+          <div style="align-self:flex-end;margin-right:55px;"><div class="node clay-c" style="--c1:var(--purple-light);--c2:var(--purple-dark);--sh:rgba(88,64,204,.5);">💎<span class="lvl">7.7</span></div></div>
+
+          <!-- YOU ARE HERE -->
+          <div style="align-self:flex-start;margin-left:55px;position:relative;">
+            <div class="you-marker" style="top:-44px;"><div class="tag">СЕНІҢ ДЕҢГЕЙІҢ</div><div class="tip"></div></div>
+            <div class="node current clay-c" style="--c1:var(--gold-light);--c2:var(--gold);--sh:rgba(245,166,35,.7);">⚡<span class="lvl">7.6</span></div>
+          </div>
+
+          <div style="text-align:center;"><div class="node clay-c" style="--c1:var(--jade-light);--c2:var(--jade-dark);--sh:rgba(0,155,110,.5);">✓<span class="lvl">7.5</span></div></div>
+          <div style="align-self:flex-end;margin-right:55px;"><div class="node clay-c" style="--c1:var(--jade-light);--c2:var(--jade-dark);--sh:rgba(0,155,110,.5);">✓<span class="lvl">7.4</span></div></div>
+          <div style="align-self:flex-start;margin-left:55px;"><div class="node clay-c" style="--c1:var(--jade-light);--c2:var(--jade-dark);--sh:rgba(0,155,110,.5);">✓<span class="lvl">7.3</span></div></div>
+        </div>
+      </div>
+
+      <!-- ===== GRADE SEGMENT DIVIDER 6→7 ===== -->
+      <div style="background:linear-gradient(180deg,#6a5acd,#7B96FF);padding:6px 0;">
+        <div class="divider-banner glass" style="color:var(--ink);position:relative;">
+          <div class="oyu" style="color:var(--eagle);position:absolute;top:0;left:0;right:0;"></div>
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:var(--ink);">6-сынып аяқталды! 7-сынып басталады 🎉</div>
+          <div class="oyu" style="color:var(--eagle);position:absolute;bottom:0;left:0;right:0;"></div>
+        </div>
+      </div>
+
+      <!-- ===== EARLIER GRADES (sky → steppe, completed) ===== -->
+      <div style="background:linear-gradient(180deg,#7B96FF,#9fd4ff 60%,#bfe8c9);">
+        <div class="seg-band" style="display:flex;flex-direction:column;align-items:center;gap:30px;padding-top:14px;">
+          <div style="text-align:center;"><div class="node clay-c" style="--c1:var(--jade-light);--c2:var(--jade-dark);--sh:rgba(0,155,110,.5);">👑<span class="lvl">6.8</span></div></div>
+          <div style="align-self:flex-end;margin-right:55px;"><div class="node clay-c" style="--c1:var(--jade-light);--c2:var(--jade-dark);--sh:rgba(0,155,110,.5);">✓<span class="lvl">6.7</span></div></div>
+          <div style="align-self:flex-start;margin-left:55px;"><div class="node clay-c" style="--c1:var(--jade-light);--c2:var(--jade-dark);--sh:rgba(0,155,110,.5);">✓<span class="lvl">6.6</span></div></div>
+        </div>
+        <!-- ground / steppe -->
+        <div style="height:80px;background:linear-gradient(180deg,transparent,#7fbf8a);position:relative;">
+          <div style="position:absolute;bottom:0;left:0;right:0;font-size:30px;text-align:center;opacity:.9;">⛰️ &nbsp; 🏕️ &nbsp; 🐎</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- floating assistant cheering -->
+    <div class="fab-assistant clay-c" style="--c1:var(--eagle-light);--c2:var(--eagle);--sh:rgba(47,78,204,.55);position:absolute;bottom:24px;right:18px;z-index:55;animation:float 3.2s infinite;">🦅</div>
+  </div>
+  <div class="frame-cap"><span class="num">2</span><h2>Оқу картасы · grade-segmented</h2><p>Жоғары→төмен: бұғатталған 8–11 (тұманды) → шың қақпасы → ашық 7 (жарқыраған) → 6, 5… steppe.</p></div>
+</div>
+
+<!-- ============================================================
+     FRAME 3 — GRADE OVERVIEW BOTTOM SHEET
+     ============================================================ -->
+<div class="frame-wrap">
+  <div class="phone">
+    <div class="notch"></div>
+    <!-- dimmed map behind -->
+    <div style="position:absolute;inset:0;background:linear-gradient(180deg,#5b54b8,#7B96FF);filter:brightness(.7);"></div>
+    <div style="position:absolute;inset:0;background:rgba(15,15,46,.45);"></div>
+    <div class="statusbar on-dark"><span>9:41</span><div class="dots">📶 🔋</div></div>
+
+    <!-- the sheet -->
+    <div class="glass" style="position:absolute;left:0;right:0;bottom:0;height:680px;border-radius:32px 32px 0 0;padding:14px 18px 28px;z-index:10;">
+      <div style="width:46px;height:5px;border-radius:99px;background:rgba(26,26,78,.2);margin:2px auto 14px;"></div>
+      <div class="row" style="justify-content:space-between;margin-bottom:4px;">
+        <div style="font-family:'Baloo 2';font-weight:800;font-size:20px;color:var(--ink);">📐 Математика — барлық сынып</div>
+      </div>
+      <div style="font-size:12.5px;font-weight:700;color:var(--t2);margin-bottom:16px;">3/7 сынып аяқталды · 1 880 ⚡ жиналды</div>
+
+      <div class="scroll" style="position:relative;inset:auto;height:540px;overflow-y:auto;">
+        <!-- completed -->
+        <div class="sheet-grade clay" style="background:linear-gradient(145deg,#eafbf4,#d6f5ea);">
+          <div class="fab-assistant clay-c" style="width:44px;height:44px;font-size:20px;--c1:var(--jade-light);--c2:var(--jade-dark);--sh:rgba(0,155,110,.4);">✓</div>
+          <div style="flex:1;"><div style="font-family:'Baloo 2';font-weight:800;color:var(--ink);">1-сынып</div><div style="font-size:11.5px;font-weight:700;color:var(--jade-dark);">Аяқталды</div></div>
+          <div style="color:var(--gold);font-size:15px;">⭐⭐⭐</div>
+        </div>
+        <div class="sheet-grade clay" style="background:linear-gradient(145deg,#eafbf4,#d6f5ea);">
+          <div class="fab-assistant clay-c" style="width:44px;height:44px;font-size:20px;--c1:var(--jade-light);--c2:var(--jade-dark);--sh:rgba(0,155,110,.4);">✓</div>
+          <div style="flex:1;"><div style="font-family:'Baloo 2';font-weight:800;color:var(--ink);">2-сынып</div><div style="font-size:11.5px;font-weight:700;color:var(--jade-dark);">Аяқталды</div></div>
+          <div style="color:var(--gold);font-size:15px;">⭐⭐⭐</div>
+        </div>
+        <div class="sheet-grade clay" style="background:linear-gradient(145deg,#eafbf4,#d6f5ea);">
+          <div class="fab-assistant clay-c" style="width:44px;height:44px;font-size:20px;--c1:var(--jade-light);--c2:var(--jade-dark);--sh:rgba(0,155,110,.4);">✓</div>
+          <div style="flex:1;"><div style="font-family:'Baloo 2';font-weight:800;color:var(--ink);">3-сынып</div><div style="font-size:11.5px;font-weight:700;color:var(--jade-dark);">Аяқталды</div></div>
+          <div style="color:var(--gold);font-size:15px;">⭐⭐☆</div>
+        </div>
+        <div class="sheet-grade clay" style="background:linear-gradient(145deg,#eafbf4,#d6f5ea);">
+          <div class="fab-assistant clay-c" style="width:44px;height:44px;font-size:20px;--c1:var(--jade-light);--c2:var(--jade-dark);--sh:rgba(0,155,110,.4);">✓</div>
+          <div style="flex:1;"><div style="font-family:'Baloo 2';font-weight:800;color:var(--ink);">4-сынып</div><div style="font-size:11.5px;font-weight:700;color:var(--jade-dark);">Аяқталды</div></div>
+          <div style="color:var(--gold);font-size:15px;">⭐⭐⭐</div>
+        </div>
+        <div class="sheet-grade clay" style="background:linear-gradient(145deg,#eafbf4,#d6f5ea);">
+          <div class="fab-assistant clay-c" style="width:44px;height:44px;font-size:20px;--c1:var(--jade-light);--c2:var(--jade-dark);--sh:rgba(0,155,110,.4);">✓</div>
+          <div style="flex:1;"><div style="font-family:'Baloo 2';font-weight:800;color:var(--ink);">5-сынып</div><div style="font-size:11.5px;font-weight:700;color:var(--jade-dark);">Аяқталды</div></div>
+          <div style="color:var(--gold);font-size:15px;">⭐⭐⭐</div>
+        </div>
+        <div class="sheet-grade clay" style="background:linear-gradient(145deg,#eafbf4,#d6f5ea);">
+          <div class="fab-assistant clay-c" style="width:44px;height:44px;font-size:20px;--c1:var(--jade-light);--c2:var(--jade-dark);--sh:rgba(0,155,110,.4);">✓</div>
+          <div style="flex:1;"><div style="font-family:'Baloo 2';font-weight:800;color:var(--ink);">6-сынып</div><div style="font-size:11.5px;font-weight:700;color:var(--jade-dark);">Аяқталды</div></div>
+          <div style="color:var(--gold);font-size:15px;">⭐⭐☆</div>
+        </div>
+
+        <!-- current glowing -->
+        <div class="sheet-grade clay-c current" style="--c1:var(--gold-light);--c2:var(--gold);--sh:rgba(245,166,35,.6);position:relative;">
+          <div class="fab-assistant clay-c" style="width:44px;height:44px;font-size:20px;--c1:#fff;--c2:#ffe9bf;--sh:rgba(212,134,10,.4);">⚡</div>
+          <div style="flex:1;"><div style="font-family:'Baloo 2';font-weight:800;color:#fff;">7-сынып</div><div style="font-size:11.5px;font-weight:800;color:#fff;opacity:.95;">Қазір осында · 6/8 деңгей</div></div>
+          <div class="pill" style="background:rgba(255,255,255,.3);color:#fff;">Жалғастыр →</div>
+        </div>
+
+        <!-- locked future -->
+        <div class="sheet-grade" style="background:rgba(255,255,255,.4);backdrop-filter:blur(6px);border:1px dashed rgba(26,26,78,.18);">
+          <div class="fab-assistant" style="width:44px;height:44px;font-size:18px;background:rgba(26,26,78,.1);">🔒</div>
+          <div style="flex:1;"><div style="font-family:'Baloo 2';font-weight:800;color:var(--t2);">8-сынып</div><div style="font-size:11.5px;font-weight:700;color:var(--t3);">Келесі оқу жылында ашылады</div></div>
+        </div>
+        <div class="sheet-grade" style="background:rgba(255,255,255,.3);backdrop-filter:blur(6px);border:1px dashed rgba(26,26,78,.14);opacity:.85;">
+          <div class="fab-assistant" style="width:44px;height:44px;font-size:18px;background:rgba(26,26,78,.08);">🔒</div>
+          <div style="flex:1;"><div style="font-family:'Baloo 2';font-weight:800;color:var(--t3);">9-сынып</div></div>
+        </div>
+        <div class="sheet-grade" style="background:rgba(255,255,255,.25);backdrop-filter:blur(6px);border:1px dashed rgba(26,26,78,.1);opacity:.7;">
+          <div class="fab-assistant" style="width:44px;height:44px;font-size:18px;background:rgba(26,26,78,.06);">🔒</div>
+          <div style="flex:1;"><div style="font-family:'Baloo 2';font-weight:800;color:var(--t3);">10-сынып</div></div>
+        </div>
+        <div class="sheet-grade" style="background:rgba(255,255,255,.2);backdrop-filter:blur(6px);border:1px dashed rgba(26,26,78,.08);opacity:.55;margin-bottom:0;">
+          <div class="fab-assistant" style="width:44px;height:44px;font-size:18px;background:rgba(26,26,78,.05);">🔒</div>
+          <div style="flex:1;"><div style="font-family:'Baloo 2';font-weight:800;color:var(--t3);">11-сынып</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="frame-cap"><span class="num">3</span><h2>Сынып шолуы · bottom sheet</h2><p>Аяқталған (✓ + жұлдыз), ағымдағы (жарқыраған "Қазір осында"), бұғатталған (frosted 🔒).</p></div>
+</div>
+
+<!-- ============================================================
+     FRAME 4 — TASK SCREEN (clay + glass + micro-interactions)
+     ============================================================ -->
+<div class="frame-wrap">
+  <div class="phone">
+    <div class="aurora">
+      <i style="width:340px;height:340px;background:var(--purple-light);top:-100px;right:-90px;opacity:.55;"></i>
+      <i style="width:300px;height:300px;background:var(--eagle-light);top:160px;left:-100px;opacity:.5;"></i>
+      <i style="width:300px;height:300px;background:var(--gold-light);bottom:-90px;right:-60px;opacity:.4;"></i>
+    </div>
+    <div class="notch"></div>
+    <div class="statusbar"><span>9:41</span><div class="dots">📶 🔋</div></div>
+
+    <!-- progress + hearts glass -->
+    <div style="position:absolute;top:54px;left:0;right:0;z-index:30;padding:0 16px;">
+      <div class="glass" style="padding:10px 14px;display:flex;align-items:center;gap:12px;">
+        <div style="font-size:20px;cursor:pointer;color:var(--t2);">✕</div>
+        <div style="flex:1;height:11px;border-radius:99px;background:rgba(26,26,78,.1);overflow:hidden;">
+          <div style="width:60%;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--jade-light),var(--jade));box-shadow:0 0 10px var(--jade-light);"></div>
+        </div>
+        <div class="row" style="gap:1px;"><span class="heart">❤️</span><span class="heart">❤️</span><span class="heart">❤️</span></div>
+      </div>
+    </div>
+
+    <div class="scroll" style="padding:128px 18px 30px;z-index:2;">
+      <!-- assistant + question glass card -->
+      <div style="display:flex;align-items:flex-end;gap:10px;margin-bottom:16px;">
+        <div class="fab-assistant clay-c" style="--c1:var(--eagle-light);--c2:var(--eagle);--sh:rgba(47,78,204,.55);animation:float 3s infinite;flex:none;">🦅</div>
+        <div class="glass" style="padding:12px 15px;border-radius:20px 20px 20px 6px;font-weight:800;font-size:14px;color:var(--ink);">Бектұр сұрайды:</div>
+      </div>
+
+      <div class="glass" style="padding:22px 20px;margin-bottom:8px;">
+        <div class="pill" style="background:var(--purple-surface);color:var(--purple);margin-bottom:14px;">7-сынып · Алгебра</div>
+        <div style="font-family:'Baloo 2';font-weight:800;font-size:22px;color:var(--ink);line-height:1.35;">
+          (x + 3)² өрнегін жайып жаз.
+        </div>
+        <div style="margin-top:14px;font-size:13px;font-weight:700;color:var(--t2);">Дұрыс жауапты таңда 👇</div>
+      </div>
+
+      <!-- floating XP burst on correct option -->
+      <div style="position:relative;margin-top:18px;display:flex;flex-direction:column;gap:13px;">
+        <span class="floatxp" style="top:-6px;right:24px;animation:float 2s infinite;">+5 ⚡</span>
+
+        <!-- correct (pressed + green glow + particles) -->
+        <div class="opt clay-c pressed" style="--c1:var(--jade-light);--c2:var(--jade);--sh:rgba(0,155,110,.5);color:#fff;position:relative;box-shadow:0 0 0 3px rgba(0,196,140,.35),0 0 24px rgba(0,196,140,.55) !important;">
+          <div class="key" style="background:rgba(255,255,255,.25);color:#fff;">A</div>
+          <span style="flex:1;color:#fff;">x² + 6x + 9</span>
+          <span style="font-size:20px;">✓</span>
+          <!-- particle burst -->
+          <span style="position:absolute;top:-6px;left:30%;color:var(--gold);">✦</span>
+          <span style="position:absolute;-bottom:-6px;left:60%;bottom:-6px;color:var(--jade-light);">✦</span>
+          <span style="position:absolute;top:-8px;right:20%;color:#fff;font-size:12px;">✦</span>
+        </div>
+
+        <div class="opt clay"><div class="key">B</div><span style="flex:1;">x² + 9</span></div>
+        <div class="opt clay"><div class="key">C</div><span style="flex:1;">x² + 3x + 9</span></div>
+
+        <!-- wrong example (gentle shake + soft red) -->
+        <div class="opt clay-c" style="--c1:#ffd9dd;--c2:#ffb3ba;--sh:rgba(211,47,61,.35);color:var(--coral);">
+          <div class="key" style="background:rgba(255,71,87,.18);color:var(--coral);">D</div>
+          <span style="flex:1;">x² + 6x + 6</span>
+          <span style="font-size:18px;">✕</span>
+        </div>
+      </div>
+
+      <!-- caring assistant feedback (wrong state preview) -->
+      <div class="glass" style="margin-top:18px;padding:13px 15px;display:flex;align-items:center;gap:10px;border:1px solid rgba(255,140,66,.4);">
+        <span style="font-size:24px;">🦅</span>
+        <span style="font-size:13px;font-weight:700;color:var(--t1);">Қателесу — үйренудің бөлігі! Тағы көрейік 💛</span>
+      </div>
+    </div>
+
+    <!-- bottom primary clay button -->
+    <div style="position:absolute;bottom:0;left:0;right:0;padding:16px 18px 26px;z-index:30;background:linear-gradient(180deg,transparent,rgba(250,251,255,.9) 40%);">
+      <button class="btn clay-c" style="--c1:var(--jade-light);--c2:var(--jade-dark);--sh:rgba(0,155,110,.5);">Тексеру ✓</button>
+    </div>
+  </div>
+  <div class="frame-cap"><span class="num">4</span><h2>Тапсырма экраны</h2><p>Aurora фон, glass сұрақ картасы, clay жауаптар, "+5 ⚡" ұшу, дұрыс=жасыл жарық, бұрыс=қамқор.</p></div>
+</div>
+
+<!-- ============================================================
+     FRAME 5 — RESULT / CELEBRATION SCREEN
+     ============================================================ -->
+<div class="frame-wrap">
+  <div class="phone">
+    <div style="position:absolute;inset:0;background:linear-gradient(180deg,#4A6CF7,#7B61FF 55%,#5840CC);"></div>
+    <div class="aurora">
+      <i style="width:360px;height:360px;background:var(--gold-light);top:-60px;left:-60px;opacity:.55;"></i>
+      <i style="width:320px;height:320px;background:var(--purple-light);bottom:60px;right:-90px;opacity:.6;"></i>
+    </div>
+    <!-- confetti -->
+    <div class="confetti" style="background:var(--gold);top:90px;left:60px;transform:rotate(20deg);"></div>
+    <div class="confetti" style="background:var(--jade);top:120px;right:70px;transform:rotate(-30deg);"></div>
+    <div class="confetti" style="background:var(--coral);top:60px;left:50%;transform:rotate(45deg);"></div>
+    <div class="confetti" style="background:#fff;top:160px;left:90px;transform:rotate(10deg);"></div>
+    <div class="confetti" style="background:var(--eagle-light);top:200px;right:50px;transform:rotate(-15deg);"></div>
+    <div class="confetti" style="background:var(--gold-light);top:240px;left:40px;transform:rotate(60deg);"></div>
+
+    <div class="notch"></div>
+    <div class="statusbar on-dark"><span>9:41</span><div class="dots">📶 🔋</div></div>
+
+    <div class="scroll" style="padding:70px 22px 30px;z-index:3;text-align:center;">
+      <!-- milestone -->
+      <div class="glass" style="padding:8px 14px;display:inline-flex;align-items:center;gap:7px;color:var(--ink);margin-bottom:18px;">
+        <span>🏆</span><span style="font-family:'Baloo 2';font-weight:800;font-size:13px;color:var(--gold-dark);">7-СЫНЫП АЯҚТАЛДЫ!</span>
+      </div>
+
+      <!-- 3D assistant celebrating -->
+      <div class="fab-assistant clay-c" style="width:118px;height:118px;font-size:66px;margin:0 auto 6px;--c1:var(--gold-light);--c2:var(--gold);--sh:rgba(212,134,10,.6);animation:float 2.6s infinite;">🦅</div>
+      <div style="font-family:'Baloo 2';font-weight:800;font-size:30px;color:#fff;text-shadow:0 4px 14px rgba(0,0,0,.25);">Тамаша, Айдана! 🎉</div>
+      <div style="font-size:14px;font-weight:700;color:rgba(255,255,255,.9);margin-top:4px;">Сен бүкіл 7-сыныпты бағындырдың!</div>
+
+      <!-- clay 3-star -->
+      <div class="row" style="justify-content:center;gap:8px;margin:22px 0;">
+        <span class="star" style="filter:drop-shadow(0 6px 8px rgba(212,134,10,.5));transform:translateY(8px) scale(.92);">⭐</span>
+        <span class="star" style="font-size:48px;filter:drop-shadow(0 8px 12px rgba(212,134,10,.6));">⭐</span>
+        <span class="star" style="filter:drop-shadow(0 6px 8px rgba(212,134,10,.5));transform:translateY(8px) scale(.92);">⭐</span>
+      </div>
+
+      <!-- rewards glass card -->
+      <div class="glass" style="padding:18px 16px;text-align:left;">
+        <div style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:var(--ink);margin-bottom:14px;text-align:center;">Сыйлықтарың</div>
+        <div class="row" style="gap:11px;">
+          <div class="clay-c" style="flex:1;--c1:var(--purple-light);--c2:var(--purple);--sh:rgba(88,64,204,.4);border-radius:16px;padding:14px 10px;text-align:center;color:#fff;">
+            <div style="font-size:24px;">⚡</div><div style="font-family:'Baloo 2';font-weight:800;font-size:20px;">+450</div><div style="font-size:11px;opacity:.9;font-weight:700;">Ақыл</div>
+          </div>
+          <div class="clay-c" style="flex:1;--c1:var(--gold-light);--c2:var(--gold);--sh:rgba(212,134,10,.4);border-radius:16px;padding:14px 10px;text-align:center;color:#fff;">
+            <div style="font-size:24px;">🪙</div><div style="font-family:'Baloo 2';font-weight:800;font-size:20px;">+120</div><div style="font-size:11px;opacity:.9;font-weight:700;">Тиын</div>
+          </div>
+          <div class="clay-c" style="flex:1;--c1:var(--jade-light);--c2:var(--jade);--sh:rgba(0,155,110,.4);border-radius:16px;padding:14px 10px;text-align:center;color:#fff;">
+            <div style="font-size:24px;">🎖️</div><div style="font-family:'Baloo 2';font-weight:800;font-size:20px;">1</div><div style="font-size:11px;opacity:.9;font-weight:700;">Белгі</div>
+          </div>
+        </div>
+        <div style="margin-top:14px;padding:11px;border-radius:14px;background:var(--eagle-surface);text-align:center;">
+          <span style="font-size:12.5px;font-weight:800;color:var(--eagle-dark);">🔓 8-сынып келесі оқу жылында ашылады!</span>
+        </div>
+      </div>
+
+      <button class="btn clay-c" style="--c1:var(--eagle-light);--c2:var(--eagle-dark);--sh:rgba(47,78,204,.5);margin-top:18px;">Жалғастыру</button>
+      <div style="margin-top:12px;font-size:13px;font-weight:800;color:rgba(255,255,255,.85);cursor:pointer;">Картаға оралу</div>
+    </div>
+  </div>
+  <div class="frame-cap"><span class="num">5</span><h2>Нәтиже · мереке</h2><p>Aurora + конфетти, 3D көмекші, clay 3 жұлдыз (bounce), glass сыйлық картасы, "7-сынып аяқталды!".</p></div>
+</div>
+
+<!-- ============================================================
+     FRAME 6 — DARK MODE map variant
+     ============================================================ -->
+<div class="frame-wrap">
+  <div class="phone dark">
+    <div class="notch"></div>
+    <!-- sticky glass header dark -->
+    <div style="position:absolute;top:0;left:0;right:0;z-index:60;padding:48px 14px 12px;">
+      <div class="glass-dark" style="padding:11px 14px;display:flex;align-items:center;gap:11px;border-radius:var(--r-l);">
+        <div style="font-size:26px;">📐</div>
+        <div style="flex:1;">
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:#fff;">Математика</div>
+          <div style="height:7px;border-radius:99px;background:rgba(255,255,255,.12);margin-top:5px;overflow:hidden;">
+            <div style="width:43%;height:100%;background:linear-gradient(90deg,var(--eagle-light),var(--purple-light));border-radius:99px;box-shadow:0 0 10px var(--purple-light);"></div>
+          </div>
+        </div>
+        <div class="pill" style="background:rgba(123,150,255,.2);color:var(--eagle-light);cursor:pointer;">7-сынып ▾</div>
+        <div class="row" style="gap:2px;"><span class="heart">❤️</span><span class="heart">❤️</span><span class="heart">❤️</span><span class="heart off">❤️</span><span class="heart off">❤️</span></div>
+      </div>
+    </div>
+
+    <div class="scroll" style="z-index:2;background:var(--night);">
+      <!-- locked future cosmos -->
+      <div style="background:linear-gradient(180deg,#0f0f2e,#191945);position:relative;padding-top:112px;">
+        <div style="position:absolute;top:130px;left:40px;color:#fff;opacity:.5;">✦</div>
+        <div style="position:absolute;top:180px;right:50px;color:var(--purple-light);opacity:.7;">✦</div>
+        <div style="position:absolute;top:90px;right:90px;color:#fff;opacity:.4;font-size:11px;">✦</div>
+        <!-- frosted dark fog -->
+        <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(30,30,70,.6),rgba(30,30,70,.2) 60%,rgba(30,30,70,.5));backdrop-filter:blur(3px);"></div>
+        <div style="position:relative;text-align:center;font-family:'Baloo 2';font-weight:800;font-size:13px;color:#9aa0d0;padding:6px;">✨ Болашақ сапарың</div>
+        <div class="seg-band" style="display:flex;flex-direction:column;align-items:center;gap:26px;opacity:.8;">
+          <div class="node locked clay-c" style="--c1:#3a3a64;--c2:#26264a;--sh:rgba(0,0,0,.5);color:#9aa0d0;">🔒<span class="lvl" style="background:#26264a;color:#cfd2f0;">11</span></div>
+          <div style="align-self:flex-end;margin-right:60px;"><div class="node locked clay-c" style="--c1:#3a3a64;--c2:#26264a;--sh:rgba(0,0,0,.5);color:#9aa0d0;">🔒<span class="lvl" style="background:#26264a;color:#cfd2f0;">10</span></div></div>
+          <div style="align-self:flex-start;margin-left:60px;"><div class="node locked clay-c" style="--c1:#3a3a64;--c2:#26264a;--sh:rgba(0,0,0,.5);color:#9aa0d0;">🔒<span class="lvl" style="background:#26264a;color:#cfd2f0;">9</span></div></div>
+          <div style="text-align:center;"><div class="node locked clay-c" style="--c1:#46406e;--c2:#2e2a52;--sh:rgba(0,0,0,.5);color:#b4abe0;">🔒<span class="lvl" style="background:#2e2a52;color:#cfd2f0;">8</span></div>
+            <div style="font-size:11px;font-weight:800;color:#9aa0d0;margin-top:8px;">8-сынып · бұғатталған</div></div>
+        </div>
+      </div>
+
+      <!-- ceiling gate dark -->
+      <div style="position:relative;background:linear-gradient(180deg,#191945,#222258);padding:4px 0 0;">
+        <div class="glass-dark" style="margin:0 16px;padding:18px 16px;text-align:center;border-radius:var(--r-xl);position:relative;overflow:hidden;">
+          <div class="oyu" style="color:var(--gold);position:absolute;top:0;left:0;right:0;"></div>
+          <div style="font-size:40px;margin-top:4px;animation:float 3s infinite;">🦅</div>
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:17px;color:#fff;margin-top:6px;">8-сынып келесі оқу жылында ашылады! 🔒</div>
+          <div style="font-size:12.5px;font-weight:700;color:#b8bce0;margin-top:4px;">Әзірге 7-сыныптың шыңын бағындыр 💪</div>
+          <div class="oyu" style="color:var(--gold);position:absolute;bottom:0;left:0;right:0;"></div>
+        </div>
+        <div style="height:2px;margin:14px 30px 0;background:linear-gradient(90deg,transparent,var(--gold-light),transparent);box-shadow:0 0 22px 4px var(--gold);"></div>
+        <div style="text-align:center;font-family:'Baloo 2';font-weight:800;font-size:12px;color:var(--gold-light);padding:6px;text-shadow:0 0 12px var(--gold);">— ШЫҢ ҚАҚПАСЫ —</div>
+      </div>
+
+      <!-- current grade 7 glowing in dark -->
+      <div style="position:relative;background:linear-gradient(180deg,#222258,#2c2a6e);">
+        <div style="position:absolute;top:40px;left:50px;color:var(--gold-light);opacity:.9;">✦</div>
+        <div style="position:absolute;top:160px;right:60px;color:#fff;opacity:.6;font-size:12px;">✦</div>
+        <div class="divider-banner glass-dark" style="color:#fff;">
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:var(--gold-light);text-shadow:0 0 12px var(--gold);">⭐ Сенің сыныбың · 7-сынып</div>
+          <div style="font-size:12px;font-weight:700;color:#c4c7ec;">Қазір осында тұрсың — алға!</div>
+        </div>
+        <div class="seg-band" style="display:flex;flex-direction:column;align-items:center;gap:30px;padding-top:8px;">
+          <div style="text-align:center;"><div class="node clay-c" style="--c1:var(--gold-light);--c2:var(--gold-dark);--sh:rgba(212,134,10,.7);">👑<span class="lvl" style="background:#2e2a52;color:#fff;">7.8</span></div>
+            <div style="font-size:10px;font-weight:800;color:#fff;margin-top:6px;">Финал сынағы</div></div>
+          <div style="align-self:flex-end;margin-right:55px;"><div class="node clay-c" style="--c1:var(--purple-light);--c2:var(--purple-dark);--sh:rgba(165,147,255,.6);box-shadow:0 0 22px rgba(165,147,255,.4);">💎<span class="lvl" style="background:#2e2a52;color:#fff;">7.7</span></div></div>
+          <div style="align-self:flex-start;margin-left:55px;position:relative;">
+            <div class="you-marker" style="top:-44px;"><div class="tag">СЕНІҢ ДЕҢГЕЙІҢ</div><div class="tip"></div></div>
+            <div class="node current clay-c" style="--c1:var(--gold-light);--c2:var(--gold);--sh:rgba(245,166,35,.8);box-shadow:0 0 28px rgba(245,166,35,.6);">⚡<span class="lvl" style="background:#2e2a52;color:#fff;">7.6</span></div>
+          </div>
+          <div style="text-align:center;"><div class="node clay-c" style="--c1:var(--jade-light);--c2:var(--jade-dark);--sh:rgba(0,155,110,.6);">✓<span class="lvl" style="background:#2e2a52;color:#fff;">7.5</span></div></div>
+          <div style="align-self:flex-end;margin-right:55px;"><div class="node clay-c" style="--c1:var(--jade-light);--c2:var(--jade-dark);--sh:rgba(0,155,110,.6);">✓<span class="lvl" style="background:#2e2a52;color:#fff;">7.4</span></div></div>
+        </div>
+      </div>
+
+      <!-- divider + earlier -->
+      <div style="background:linear-gradient(180deg,#2c2a6e,#33306e);padding:6px 0;">
+        <div class="divider-banner glass-dark">
+          <div class="oyu" style="color:var(--eagle-light);position:absolute;top:0;left:0;right:0;"></div>
+          <div style="font-family:'Baloo 2';font-weight:800;font-size:15px;color:#fff;">6-сынып аяқталды! 7-сынып басталады 🎉</div>
+          <div class="oyu" style="color:var(--eagle-light);position:absolute;bottom:0;left:0;right:0;"></div>
+        </div>
+        <div class="seg-band" style="display:flex;flex-direction:column;align-items:center;gap:30px;padding-top:14px;">
+          <div style="text-align:center;"><div class="node clay-c" style="--c1:var(--jade-light);--c2:var(--jade-dark);--sh:rgba(0,155,110,.6);">👑<span class="lvl" style="background:#2e2a52;color:#fff;">6.8</span></div></div>
+          <div style="align-self:flex-end;margin-right:55px;"><div class="node clay-c" style="--c1:var(--jade-light);--c2:var(--jade-dark);--sh:rgba(0,155,110,.6);">✓<span class="lvl" style="background:#2e2a52;color:#fff;">6.7</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fab-assistant clay-c" style="--c1:var(--eagle-light);--c2:var(--eagle);--sh:rgba(47,78,204,.6);position:absolute;bottom:24px;right:18px;z-index:55;animation:float 3.2s infinite;box-shadow:0 0 24px rgba(123,150,255,.5);">🦅</div>
+  </div>
+  <div class="frame-cap"><span class="num">6</span><h2>Қараңғы режим · карта</h2><p>Cosmic Night #0F0F2E базасы — glass жарқырайды, steppe→cosmos градиенті мен неон жиектер.</p></div>
+</div>
+
+</div>
+
+<div style="max-width:1700px;margin:60px auto 0;color:#7a7eb0;font-size:13px;line-height:1.7;">
+  <b style="color:#cfd2f0;">Іске асыру ескертпелері (Flutter):</b><br>
+  • Clay = <code style="color:#A593FF;">Container</code> + екі қабат <code style="color:#A593FF;">BoxShadow</code> (сыртқы күңгірт + сыртқы ақ) және ішкі көлеңке үшін <code style="color:#A593FF;">CustomPainter</code>/<code style="color:#A593FF;">inner_shadow</code>.<br>
+  • Glass 2.0 = <code style="color:#A593FF;">BackdropFilter(ImageFilter.blur)</code> + жартылай мөлдір градиент + 1px gradient border + noise overlay.<br>
+  • Grade gate логикасы: <code style="color:#A593FF;">student.grade</code> ≥ <code style="color:#A593FF;">node.grade</code> → ашық; әйтпесе frosted + <code style="color:#A593FF;">AbsorbPointer</code> + gentle dialog.<br>
+  • Микро-анимациялар: <code style="color:#A593FF;">flutter_animate</code> (squish/glow/bounce) + <code style="color:#A593FF;">confetti</code> пакеті нәтиже экранында.
+</div>
+
+</body>
+</html>

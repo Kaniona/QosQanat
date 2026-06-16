@@ -1,0 +1,92 @@
+version: '3.8'
+
+services:
+  # QosQanat API
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: qosqanat-api
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - AZURE_SPEECH_KEY=${AZURE_SPEECH_KEY}
+      - AZURE_SPEECH_REGION=${AZURE_SPEECH_REGION:-eastus}
+      - DATABASE_URL=postgresql://qosqanat:qosqanat123@postgres:5432/qosqanat
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ./src:/app/src
+    networks:
+      - qosqanat-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: qosqanat-postgres
+    environment:
+      - POSTGRES_USER=qosqanat
+      - POSTGRES_PASSWORD=qosqanat123
+      - POSTGRES_DB=qosqanat
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+    networks:
+      - qosqanat-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U qosqanat"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: qosqanat-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - qosqanat-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # pgAdmin for database management
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: qosqanat-pgadmin
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@qosqanat.local
+      - PGADMIN_DEFAULT_PASSWORD=admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - qosqanat-network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  qosqanat-network:
+    driver: bridge
