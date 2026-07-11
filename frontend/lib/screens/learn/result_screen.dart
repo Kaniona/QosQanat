@@ -6,8 +6,10 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/constants/app_strings.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_icons.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
+import '../../core/utils/app_sounds.dart';
 import '../../models/enums.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/game_provider.dart';
@@ -35,7 +37,12 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
   void initState() {
     super.initState();
     _confetti = ConfettiController(duration: const Duration(seconds: 2));
-    if (widget.result.passed) _confetti.play();
+    if (widget.result.passed) {
+      _confetti.play();
+      AppSounds.win();
+    } else {
+      AppSounds.lose();
+    }
     // Деңгей көтерілген болса — модал.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final pending = ref.read(gameProvider).pendingLevelUp;
@@ -86,7 +93,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
                           size: i == 1 ? 72 : 56,
                           color: i < result.stars
                               ? AppColors.goldBright
-                              : AppColors.cloudBorder,
+                              : AppColors.border,
                         )
                             .animate()
                             .scale(
@@ -110,7 +117,7 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
                     Container(
                       padding: const EdgeInsets.all(AppSpacing.sp5),
                       decoration: BoxDecoration(
-                        color: AppColors.white,
+                        color: AppColors.surface,
                         borderRadius: AppRadius.rLg,
                         boxShadow: AppColors.sh2,
                       ),
@@ -118,17 +125,17 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           _RewardCounter(
-                            label: '⚡ XP',
+                            icon: AppIcons.xp,
                             value: result.xp,
                             color: AppColors.eagleBlue,
                           ),
                           _RewardCounter(
-                            label: '💰',
+                            icon: AppIcons.coin,
                             value: result.coins,
                             color: AppColors.steppeGoldDeep,
                           ),
                           _RewardCounter(
-                            label: '★',
+                            icon: AppIcons.akyl,
                             value: result.akyl,
                             color: AppColors.cosmicPurple,
                           ),
@@ -190,12 +197,12 @@ class _ResultScreenState extends ConsumerState<ResultScreen> {
 /// 0-ден мәнге дейін санайтын марапат көрсеткіші.
 class _RewardCounter extends StatelessWidget {
   const _RewardCounter({
-    required this.label,
+    required this.icon,
     required this.value,
     required this.color,
   });
 
-  final String label;
+  final IconData icon;
   final int value;
   final Color color;
 
@@ -213,7 +220,8 @@ class _RewardCounter extends StatelessWidget {
                 .copyWith(fontSize: 28, color: color),
           ),
         ),
-        Text(label, style: AppTypography.caption),
+        const SizedBox(height: 2),
+        Icon(icon, size: 18, color: color),
       ],
     );
   }

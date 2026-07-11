@@ -40,6 +40,27 @@ abstract final class CurriculumData {
       accent: AppColors.accentCS,
       accentLight: AppColors.cosmicPurpleLight,
     ),
+    SubjectInfo(
+      id: 'biology',
+      title: 'Биология',
+      icon: Icons.biotech_rounded,
+      accent: Color(0xFF00A86B),
+      accentLight: Color(0xFFE0F7EA),
+    ),
+    SubjectInfo(
+      id: 'chemistry',
+      title: 'Химия',
+      icon: Icons.science_rounded,
+      accent: Color(0xFF8B4789),
+      accentLight: Color(0xFFF3E5F5),
+    ),
+    SubjectInfo(
+      id: 'history',
+      title: 'Қазақстан тарихы',
+      icon: Icons.history_edu_rounded,
+      accent: Color(0xFFB8860B),
+      accentLight: Color(0xFFF6ECD2),
+    ),
   ];
 
   static const int minGrade = 1;

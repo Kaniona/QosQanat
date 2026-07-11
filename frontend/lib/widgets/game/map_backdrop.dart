@@ -1,675 +1,1172 @@
 import 'dart:math';
+import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show rootBundle;
 
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/subject_legends.dart';
 import '../../core/theme/subject_worlds.dart';
 
-/// Оқу картасының тақырыптық фоны: аспан градиенті + пән әлемінің декоры.
-/// [t] — 0..1 цикл (жай дрейф анимациясы); анимация өшірулі болса 0 беріледі.
-/// [scrollOffset] — карта скроллы: декор скроллға ілесіп баяу жылжиды
-/// (параллакс), экран биіктігі сайын жіксіз қайталанады.
+/// Оқу картасының фоны — пәннің **тірі әлемі**. Қабаттар (төменнен жоғары):
+/// терең градиент → көкжиектегі **статикалық силуэт декоры** (таулар/қала/
+/// ғаламшар/схема) → жұмсақ жарқыл орбтары → кинематографиялық **vignette** →
+/// **тірі анимация қабаты** (жымыңдаған жұлдыздар, ұшқан жұлдыз, айналатын ай,
+/// схемадағы энергия импульстері, қалқыған әуе шарлары мен бұлттар, сырғыған
+/// **қыран**, ұшқан бөлшектер) → **ұлы тұлғалар галереясы** → **формулалар**.
 ///
-/// FPS үшін үш қабатқа бөлінген:
-///  - алыс фон (жұлдыз, тор, дақ...) бір-ақ рет салынып, RepaintBoundary
-///    кэшінде тұрады — параллакс тек қабатты жылжытады, қайта салмайды;
-///  - бекітілген қабат (төбе, қала, атом, микросхема жолдары) скроллға
-///    мүлде ілеспейді: жерге/орнына байланған декор экранда тұрақты тұрады,
-///    әйтпесе қала аспанда «ұшып» жүрер еді, ал электрон/сигнал өз
-///    атомынан/жолынан ажырап қалар еді;
-///  - динамикалық қабат (бұлт, шар, электрон, сигнал) ғана қайта салынады,
-///    әрі t ~30 кадр/с-қа квантталған — артық растрлеу жоқ.
-class MapBackdrop extends StatelessWidget {
+/// Ортасы (жол + тиындар) ӘРҚАШАН ашық — декор шетте/көкжиекте.
+///
+/// [t] — 0..1 дрейф циклі (бүкіл «өмір» осыдан жүреді; бүтін жиіліктер →
+/// циклдің тігісі білінбейді). Анимация өшік болса t=0 → бәрі тыныш кадр.
+/// [scrollOffset] — тұлғалар/символдар параллаксы (көкжиек тұрақты).
+class MapBackdrop extends StatefulWidget {
   const MapBackdrop({
     super.key,
+    required this.subjectId,
     required this.theme,
     required this.accent,
     required this.t,
     this.scrollOffset = 0,
+    this.companion,
   });
 
+  final String subjectId;
   final SubjectWorldTheme theme;
   final Color accent;
   final double t;
   final double scrollOffset;
 
-  /// 18 секундтық циклде ~30 кадр/с → 540 қадам.
-  static const int _steps = 540;
+  /// Оқушының серігінің түсі (Бектұр көк / Назым қызғылт). Берілсе — аспанда
+  /// сырғыған бренд қыраны осы түспен, жұмсақ жарқыл әрі қозғалыс ізімен ұшады.
+  final Color? companion;
 
-  /// Декордың скроллға ілесу үлесі: 1 = бірге, 0 = қозғалмайды.
-  static const double _parallaxFactor = .25;
+  @override
+  State<MapBackdrop> createState() => _MapBackdropState();
+}
+
+class _MapBackdropState extends State<MapBackdrop> {
+  /// Жүктелген портреттер (subjectId-ге сай). null болса — әлі жүктелуде.
+  List<ui.Image>? _figures;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFigures();
+  }
+
+  @override
+  void didUpdateWidget(MapBackdrop old) {
+    super.didUpdateWidget(old);
+    if (old.subjectId != widget.subjectId) {
+      _figures = null;
+      _loadFigures();
+    }
+  }
+
+  Future<void> _loadFigures() async {
+    final subjectId = widget.subjectId;
+    final paths = legendsFor(subjectId).figures;
+    try {
+      final imgs = await Future.wait(paths.map(_LegendImages.load));
+      if (mounted && widget.subjectId == subjectId) {
+        setState(() => _figures = imgs);
+      }
+    } catch (_) {
+      // Сурет жүктелмесе — фон әлем декоры + символдармен қала береді.
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final tq = (t * _steps).floor() / _steps;
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final h = constraints.maxHeight;
-        // Скролл өскенде (картада жоғары көтерілгенде) декор төмен жылжиды.
-        final shift = h <= 0 ? 0.0 : (scrollOffset * _parallaxFactor) % h;
-        final farDecor = RepaintBoundary(
+    final theme = widget.theme;
+    final isDark = theme.isDark;
+    final legends = legendsFor(widget.subjectId);
+    final figures = _figures;
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        // 1) Пән градиенті (терең аспан).
+        DecoratedBox(decoration: BoxDecoration(gradient: theme.gradient)),
+        // 2) Көкжиек силуэт әлемі (статикалық) — кэште.
+        RepaintBoundary(
           child: IgnorePointer(
             child: CustomPaint(
               size: Size.infinite,
               isComplex: true,
               willChange: false,
-              painter: _FarDecorPainter(world: theme.world, accent: accent),
+              painter: _SceneryPainter(theme: theme),
             ),
           ),
-        );
-        return Stack(
-          fit: StackFit.expand,
-          children: [
-            DecoratedBox(decoration: BoxDecoration(gradient: theme.gradient)),
-            // Екі көшірме бірінің үстінде бірі — цикл жігі көрінбейді.
-            Positioned(
-                top: shift - h, left: 0, right: 0, height: h, child: farDecor),
-            Positioned(
-                top: shift, left: 0, right: 0, height: h, child: farDecor),
-            // Жерге/орнына бекітілген декор — скроллға тәуелсіз.
-            RepaintBoundary(
-              child: IgnorePointer(
-                child: CustomPaint(
-                  size: Size.infinite,
-                  isComplex: true,
-                  willChange: false,
-                  painter:
-                      _AnchoredWorldPainter(world: theme.world, accent: accent),
+        ),
+        // 3) Жұмсақ жарқыл орбтары (эффект) — статикалық, кэште.
+        RepaintBoundary(
+          child: IgnorePointer(
+            child: CustomPaint(
+              size: Size.infinite,
+              willChange: false,
+              painter: _GlowPainter(accent: widget.accent, isDark: isDark),
+            ),
+          ),
+        ),
+        // 4) Кинематографиялық vignette — шеттер күңгірт, орта айқын.
+        RepaintBoundary(
+          child: IgnorePointer(
+            child: CustomPaint(
+              size: Size.infinite,
+              willChange: false,
+              painter: _VignettePainter(isDark: isDark),
+            ),
+          ),
+        ),
+        // 5) ТІРІ анимация қабаты — әлемді қозғалысқа келтіреді.
+        RepaintBoundary(
+          child: IgnorePointer(
+            child: CustomPaint(
+              size: Size.infinite,
+              isComplex: true,
+              willChange: true,
+              painter: _LifePainter(
+                theme: theme,
+                accent: widget.accent,
+                t: widget.t,
+                companion: widget.companion,
+              ),
+            ),
+          ),
+        ),
+        // 6) Ұлы тұлғалар галереясы — екі қапталда «тұрады», параллакспен.
+        if (figures != null && figures.isNotEmpty)
+          RepaintBoundary(
+            child: IgnorePointer(
+              child: CustomPaint(
+                size: Size.infinite,
+                isComplex: true,
+                painter: _LegendsPainter(
+                  images: figures,
+                  scrollOffset: widget.scrollOffset,
+                  accent: widget.accent,
+                  isDark: isDark,
                 ),
               ),
             ),
-            RepaintBoundary(
-              child: IgnorePointer(
-                child: CustomPaint(
-                  size: Size.infinite,
-                  willChange: true,
-                  painter: _DynamicWorldPainter(world: theme.world, t: tq),
-                ),
+          ),
+        // 7) Формула / символдар — нәзік қалқиды (параллакс + жай тербеліс).
+        RepaintBoundary(
+          child: IgnorePointer(
+            child: CustomPaint(
+              size: Size.infinite,
+              willChange: true,
+              painter: _GlyphsPainter(
+                glyphs: legends.glyphs,
+                accent: widget.accent,
+                isDark: isDark,
+                t: widget.t,
+                scrollOffset: widget.scrollOffset,
               ),
             ),
-          ],
-        );
-      },
+          ),
+        ),
+      ],
     );
   }
 }
 
-// ---------------- Ортақ көмекшілер ----------------
+/// Портреттерді ui.Image етіп жүктеп, кэштейтін көмекші.
+class _LegendImages {
+  static final Map<String, ui.Image> _cache = {};
 
-void _drawCloud(Canvas canvas, double cx, double cy, double s, Paint p) {
-  canvas.drawCircle(Offset(cx, cy), 18 * s, p);
-  canvas.drawCircle(Offset(cx + 22 * s, cy + 4 * s), 14 * s, p);
-  canvas.drawCircle(Offset(cx - 22 * s, cy + 5 * s), 13 * s, p);
-  canvas.drawRect(
+  static Future<ui.Image> load(String assetPath) async {
+    final cached = _cache[assetPath];
+    if (cached != null) return cached;
+    final data = await rootBundle.load(assetPath);
+    final codec = await ui.instantiateImageCodec(data.buffer.asUint8List());
+    final frame = await codec.getNextFrame();
+    return _cache[assetPath] = frame.image;
+  }
+}
+
+// ===================== Ортақ силуэт көмекшілері =====================
+
+void _chevron(Canvas c, Offset o, double r, Paint p) {
+  c.drawLine(Offset(o.dx - r, o.dy), Offset(o.dx, o.dy - r * .5), p);
+  c.drawLine(Offset(o.dx, o.dy - r * .5), Offset(o.dx + r, o.dy), p);
+}
+
+void _cloud(Canvas c, Offset o, double r, Paint p) {
+  c.drawCircle(o, r * .5, p);
+  c.drawCircle(Offset(o.dx + r * .45, o.dy + r * .05), r * .38, p);
+  c.drawCircle(Offset(o.dx - r * .45, o.dy + r * .08), r * .32, p);
+  c.drawRect(Rect.fromLTWH(o.dx - r * .6, o.dy, r * 1.2, r * .35), p);
+}
+
+void _balloon(Canvas c, Offset o, double r, Color color) {
+  final paint = Paint()..color = color;
+  final body = Path()
+    ..moveTo(o.dx, o.dy + r * 1.25)
+    ..cubicTo(o.dx - r * 1.2, o.dy + r * .2, o.dx - r, o.dy - r, o.dx, o.dy - r)
+    ..cubicTo(
+        o.dx + r, o.dy - r, o.dx + r * 1.2, o.dy + r * .2, o.dx, o.dy + r * 1.25)
+    ..close();
+  c.drawPath(body, paint);
+  c.drawRect(
     Rect.fromCenter(
-        center: Offset(cx, cy + 9 * s), width: 56 * s, height: 16 * s),
-    p,
+        center: Offset(o.dx, o.dy + r * 1.5), width: r * .35, height: r * .3),
+    paint,
   );
 }
 
-void _drawStars(Canvas canvas, Size size,
-    {required double maxY, int seed = 7, int count = 26, double alpha = .45}) {
-  final random = Random(seed);
-  final dot = Paint();
-  for (var i = 0; i < count; i++) {
-    final x = random.nextDouble() * size.width;
-    final y = random.nextDouble() * maxY;
-    dot.color = AppColors.white
-        .withValues(alpha: alpha * (.6 + random.nextDouble() * .8));
-    canvas.drawCircle(Offset(x, y), .9 + random.nextDouble() * 1.8, dot);
-  }
-}
+/// Пәннің көкжиек силуэт әлемі — тұрақты, тыныш, жолдың артында.
+class _SceneryPainter extends CustomPainter {
+  const _SceneryPainter({required this.theme});
 
-void _drawBird(Canvas canvas, Offset c, double s, Paint p) {
-  final path = Path()
-    ..moveTo(c.dx - 8 * s, c.dy)
-    ..quadraticBezierTo(c.dx - 4 * s, c.dy - 6 * s, c.dx, c.dy)
-    ..quadraticBezierTo(c.dx + 4 * s, c.dy - 6 * s, c.dx + 8 * s, c.dy);
-  canvas.drawPath(path, p);
-}
+  final SubjectWorldTheme theme;
 
-/// Микросхема жолдары — екі қабатқа да бірдей болуы үшін
-/// детерминистік геометрия (seed=21).
-List<List<Offset>> _circuitTraces(Size size) {
-  final w = size.width;
-  final h = size.height;
-  final random = Random(21);
-  final traces = <List<Offset>>[];
-  for (var i = 0; i < 7; i++) {
-    var p = Offset(
-        random.nextDouble() * w, h * .06 + random.nextDouble() * h * .85);
-    final pts = [p];
-    for (var s = 0; s < 3; s++) {
-      final horizontal = s.isEven;
-      final delta =
-          (random.nextDouble() * 90 + 50) * (random.nextBool() ? 1 : -1);
-      p = horizontal
-          ? Offset((p.dx + delta).clamp(8, w - 8), p.dy)
-          : Offset(p.dx, (p.dy + delta).clamp(8, h - 8));
-      pts.add(p);
-    }
-    traces.add(pts);
-  }
-  return traces;
-}
-
-// ---------------- Алыс фон (параллакспен циклді қайталанады) ----------------
-
-/// Тек еркін қайталануға жарайтын текстура: жұлдыз, тор, дақ, бит.
-/// Жерге не басқа қабатқа байланған ештеңе мұнда салынбайды.
-class _FarDecorPainter extends CustomPainter {
-  const _FarDecorPainter({required this.world, required this.accent});
-
-  final SubjectWorld world;
-  final Color accent;
+  Color get _s => theme.scenery;
 
   @override
   void paint(Canvas canvas, Size size) {
-    switch (world) {
+    switch (theme.world) {
       case SubjectWorld.steppe:
-        _paintSteppe(canvas, size);
+        _steppe(canvas, size);
       case SubjectWorld.geometry:
-        _paintGeometry(canvas, size);
+        _geometry(canvas, size);
       case SubjectWorld.skyTravel:
-        _paintSkyTravel(canvas, size);
+        _skyTravel(canvas, size);
       case SubjectWorld.cosmos:
-        _paintCosmos(canvas, size);
+        _cosmos(canvas, size);
       case SubjectWorld.circuit:
-        _paintCircuit(canvas, size);
+        _circuit(canvas, size);
+      case SubjectWorld.flora:
+        _flora(canvas, size);
+      case SubjectWorld.lab:
+        _lab(canvas, size);
+      case SubjectWorld.heritage:
+        _heritage(canvas, size);
     }
   }
 
-  void _paintSteppe(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    final glow = Paint()..color = accent.withValues(alpha: .10);
-    canvas.drawCircle(Offset(w * .9, h * .68), 70, glow);
-    canvas.drawCircle(Offset(w * .08, h * .42), 52, glow);
-    // Бүкіл биіктікке біркелкі — цикл жігінде жолақ болмайды.
-    _drawStars(canvas, size, maxY: h, alpha: .35);
+  void _horizonGlow(Canvas c, Size size,
+      {double yf = 1.0, double rf = .85, double? alpha}) {
+    final center = Offset(size.width * .5, size.height * yf);
+    final r = size.width * rf;
+    final a = alpha ?? (theme.isDark ? .4 : .55);
+    c.drawCircle(
+      center,
+      r,
+      Paint()
+        ..shader = RadialGradient(
+          colors: [
+            theme.horizonGlow.withValues(alpha: a),
+            theme.horizonGlow.withValues(alpha: 0),
+          ],
+        ).createShader(Rect.fromCircle(center: center, radius: r)),
+    );
   }
 
-  void _paintGeometry(Canvas canvas, Size size) {
+  void _hill(Canvas c, Size size,
+      {required double baseY,
+      required double amp,
+      required double alpha,
+      double phase = 0}) {
     final w = size.width;
     final h = size.height;
+    final y0 = h * baseY;
+    final a = h * amp;
+    final path = Path()..moveTo(0, y0 + sin(phase) * a);
+    for (var x = 0.0; x <= w; x += w / 16) {
+      path.lineTo(x, y0 + sin(x / w * pi * 1.4 + phase) * a);
+    }
+    path
+      ..lineTo(w, h)
+      ..lineTo(0, h)
+      ..close();
+    c.drawPath(path, Paint()..color = _s.withValues(alpha: alpha));
+  }
 
-    // Жеңіл координаталық тор. Көлденең сызық қадамы биіктікке тұтас
-    // бөлінеді — цикл жігінде тор «секірмейді».
+  void _yurt(Canvas c, Offset base, double r, Color color) {
+    final body = Path()
+      ..moveTo(base.dx - r, base.dy)
+      ..lineTo(base.dx - r * .9, base.dy - r * .7)
+      ..quadraticBezierTo(
+          base.dx, base.dy - r * 1.5, base.dx + r * .9, base.dy - r * .7)
+      ..lineTo(base.dx + r, base.dy)
+      ..close();
+    c.drawPath(body, Paint()..color = color);
+  }
+
+  void _steppe(Canvas c, Size size) {
+    final w = size.width;
+    final h = size.height;
+    _horizonGlow(c, size, yf: 1.04, rf: .78);
+    final mtn = Path()..moveTo(0, h * .84);
+    const pts = [
+      [.16, .73], [.32, .82], [.5, .69], [.68, .81], [.84, .72], [1.0, .82],
+    ];
+    for (final p in pts) {
+      mtn.lineTo(w * p[0], h * p[1]);
+    }
+    mtn
+      ..lineTo(w, h)
+      ..lineTo(0, h)
+      ..close();
+    c.drawPath(mtn, Paint()..color = _s.withValues(alpha: .16));
+    _hill(c, size, baseY: .88, amp: .03, alpha: .22, phase: .6);
+    _hill(c, size, baseY: .93, amp: .04, alpha: .34, phase: 2.1);
+    _yurt(c, Offset(w * .72, h * .915), w * .07, _s.withValues(alpha: .5));
+    _yurt(c, Offset(w * .2, h * .95), w * .05, _s.withValues(alpha: .42));
+  }
+
+  void _geometry(Canvas c, Size size) {
+    final w = size.width;
+    final h = size.height;
+    _horizonGlow(c, size, yf: 1.02, rf: .8, alpha: .5);
     final grid = Paint()
-      ..color = const Color(0x144A6CF7)
-      ..strokeWidth = 1;
-    for (var x = 0.0; x < w; x += 44) {
-      canvas.drawLine(Offset(x, 0), Offset(x, h), grid);
-    }
-    final rows = max(1, (h / 44).round());
-    final yStep = h / rows;
-    for (var i = 0; i < rows; i++) {
-      canvas.drawLine(Offset(0, i * yStep), Offset(w, i * yStep), grid);
-    }
-
-    // Шоқжұлдыз тәрізді нүкте-сызықтар.
-    final random = Random(12);
-    final nodes = [
-      for (var i = 0; i < 7; i++)
-        Offset(random.nextDouble() * w, h * .05 + random.nextDouble() * h * .3),
-    ];
-    final link = Paint()
-      ..color = const Color(0x294A6CF7)
-      ..strokeWidth = 1.4;
-    for (var i = 0; i < nodes.length - 1; i++) {
-      canvas.drawLine(nodes[i], nodes[i + 1], link);
-    }
-    final nodePaint = Paint()..color = const Color(0x664A6CF7);
-    for (final n in nodes) {
-      canvas.drawCircle(n, 3, nodePaint);
-    }
-
-    final glow = Paint()..color = accent.withValues(alpha: .08);
-    canvas.drawCircle(Offset(w * .9, h * .12), 56, glow);
-    canvas.drawCircle(Offset(w * .06, h * .9), 64, glow);
-  }
-
-  void _paintSkyTravel(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-
-    // Алыстағы солғын бұлттар — параллакс тереңдігі үшін.
-    final cloud = Paint()..color = const Color(0x59FFFFFF);
-    _drawCloud(canvas, w * .25, h * .2, .8, cloud);
-    _drawCloud(canvas, w * .72, h * .36, .65, cloud);
-    _drawCloud(canvas, w * .12, h * .58, .7, cloud);
-    _drawCloud(canvas, w * .82, h * .76, .6, cloud);
-  }
-
-  void _paintCosmos(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-
-    _drawStars(canvas, size, maxY: h, count: 70, alpha: .5, seed: 3);
-
-    // Сақиналы ғаламшар.
-    final planetCenter = Offset(w * .82, h * .2);
-    canvas.drawCircle(
-        planetCenter, 26, Paint()..color = const Color(0xCCFF8C42));
-    canvas.drawCircle(Offset(planetCenter.dx - 8, planetCenter.dy - 6), 6,
-        Paint()..color = const Color(0x40FFFFFF));
-    canvas.save();
-    canvas.translate(planetCenter.dx, planetCenter.dy);
-    canvas.rotate(-.42);
-    canvas.drawOval(
-      Rect.fromCenter(center: Offset.zero, width: 84, height: 22),
-      Paint()
-        ..color = const Color(0xB3FFD700)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 3,
-    );
-    canvas.restore();
-
-    // Кіші ғаламшар.
-    canvas.drawCircle(
-        Offset(w * .12, h * .55), 14, Paint()..color = const Color(0xCC00C48C));
-
-    // Тұмандық дақтар.
-    final glow = Paint()..color = accent.withValues(alpha: .14);
-    canvas.drawCircle(Offset(w * .5, h * .4), 90, glow);
-    canvas.drawCircle(Offset(w * .9, h * .78), 70, glow);
-  }
-
-  void _paintCircuit(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-
-    // «Бит» нүктелері — ұсақ шаршылар.
-    final bit = Paint()..color = const Color(0x5900D9FF);
-    final bitRandom = Random(5);
-    for (var i = 0; i < 22; i++) {
-      canvas.drawRect(
-        Rect.fromCenter(
-          center:
-              Offset(bitRandom.nextDouble() * w, bitRandom.nextDouble() * h),
-          width: 3.4,
-          height: 3.4,
-        ),
-        bit,
-      );
-    }
-
-    final glow = Paint()..color = accent.withValues(alpha: .12);
-    canvas.drawCircle(Offset(w * .5, h * .12), 80, glow);
-    canvas.drawCircle(Offset(w * .88, h * .9), 64, glow);
-  }
-
-  @override
-  bool shouldRepaint(_FarDecorPainter old) =>
-      old.world != world || old.accent != accent;
-}
-
-// ---------------- Бекітілген қабат (скроллға тәуелсіз) ----------------
-
-/// Жерге не орнына байланған декор: дала төбелері мен киіз үйлер,
-/// қала силуэті, атом (электроны айналып жүреді), микросхема жолдары
-/// (бойымен сигнал жүгіреді). Экранда қозғалмай тұрады.
-class _AnchoredWorldPainter extends CustomPainter {
-  const _AnchoredWorldPainter({required this.world, required this.accent});
-
-  final SubjectWorld world;
-  final Color accent;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    switch (world) {
-      case SubjectWorld.steppe:
-        _paintSteppe(canvas, size);
-      case SubjectWorld.geometry:
-        break; // тор мен пішіндер еркін — жерге байланған декор жоқ
-      case SubjectWorld.skyTravel:
-        _paintSkyTravel(canvas, size);
-      case SubjectWorld.cosmos:
-        _paintCosmos(canvas, size);
-      case SubjectWorld.circuit:
-        _paintCircuit(canvas, size);
-    }
-  }
-
-  void _paintSteppe(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-
-    // Алыс және жақын дала төбелері.
-    canvas.drawPath(
-      Path()
-        ..moveTo(0, h)
-        ..quadraticBezierTo(w * .3, h - 150, w * .62, h - 60)
-        ..quadraticBezierTo(w * .85, h - 10, w, h - 70)
-        ..lineTo(w, h)
-        ..close(),
-      Paint()..color = const Color(0x33E8A33D),
-    );
-    canvas.drawPath(
-      Path()
-        ..moveTo(0, h)
-        ..quadraticBezierTo(w * .22, h - 80, w * .5, h - 36)
-        ..quadraticBezierTo(w * .78, h, w, h - 40)
-        ..lineTo(w, h)
-        ..close(),
-      Paint()..color = const Color(0x40D4860A),
-    );
-
-    // Киіз үй силуэттері (күмбез + есік).
-    final yurt = Paint()..color = const Color(0x4D9A6200);
-    for (final x in [w * .18, w * .52, w * .82]) {
-      canvas.drawArc(
-        Rect.fromCenter(center: Offset(x, h - 26), width: 48, height: 44),
-        pi, pi, true, yurt,
-      );
-      canvas.drawRect(
-        Rect.fromCenter(center: Offset(x, h - 30), width: 9, height: 12),
-        Paint()..color = const Color(0x669A6200),
-      );
-    }
-  }
-
-  void _paintSkyTravel(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-
-    // Төмендегі қала силуэті (Лондон сарайы тектес мұнаралар).
-    final city = Paint()..color = const Color(0x40825A00);
-    final towers = [
-      (w * .08, 64.0, 26.0), (w * .2, 96.0, 20.0), (w * .32, 70.0, 30.0),
-      (w * .52, 120.0, 22.0), (w * .66, 80.0, 28.0), (w * .84, 100.0, 24.0),
-    ];
-    for (final (x, th, tw) in towers) {
-      canvas.drawRect(Rect.fromLTWH(x - tw / 2, h - th, tw, th), city);
-      canvas.drawPath(
-        Path()
-          ..moveTo(x - tw / 2, h - th)
-          ..lineTo(x, h - th - 16)
-          ..lineTo(x + tw / 2, h - th)
-          ..close(),
-        city,
-      );
-    }
-
-    // Үлкен сағат мұнарасының циферблаты.
-    final clockCenter = Offset(w * .52, h - 96);
-    canvas.drawCircle(clockCenter, 8, Paint()..color = const Color(0x66FFF4E0));
-    canvas.drawCircle(
-      clockCenter, 8,
-      Paint()
-        ..color = const Color(0x80825A00)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.6,
-    );
-
-    final glow = Paint()..color = accent.withValues(alpha: .1);
-    canvas.drawCircle(Offset(w * .92, h * .85), 60, glow);
-  }
-
-  void _paintCosmos(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-
-    // Атом: ядро + үш орбита (электрон — динамикалық қабатта, дәл осы
-    // центрді айналады, сондықтан атом скроллмен жылжымауы керек).
-    final atomCenter = Offset(w * .16, h * .18);
-    canvas.drawCircle(atomCenter, 5, Paint()..color = const Color(0xFFFF6FA5));
-    final orbitPaint = Paint()
-      ..color = const Color(0x66FF6FA5)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.6;
-    for (final rot in [0.0, pi / 3, 2 * pi / 3]) {
-      canvas.save();
-      canvas.translate(atomCenter.dx, atomCenter.dy);
-      canvas.rotate(rot);
-      canvas.drawOval(
-        Rect.fromCenter(center: Offset.zero, width: 64, height: 24),
-        orbitPaint,
-      );
-      canvas.restore();
+      ..strokeWidth = 1
+      ..color = _s.withValues(alpha: .14);
+    final vp = Offset(w * .5, h * .8);
+    for (var i = -6; i <= 6; i++) {
+      c.drawLine(Offset(w * .5 + i * w * .14, h), vp, grid);
     }
+    for (var j = 1; j <= 4; j++) {
+      final y = h * .8 + (h * .2) * (j / 4) * (j / 4);
+      c.drawLine(Offset(0, y), Offset(w, y), grid);
+    }
+    final city = Paint()..color = _s.withValues(alpha: .24);
+    void box(double x, double bw, double bh) {
+      c.drawRect(Rect.fromLTWH(w * x, h * .8 - h * bh, w * bw, h * bh), city);
+    }
+
+    box(.06, .1, .12);
+    box(.17, .08, .2);
+    final prism = Path()
+      ..moveTo(w * .26, h * .8)
+      ..lineTo(w * .33, h * .58)
+      ..lineTo(w * .4, h * .8)
+      ..close();
+    c.drawPath(prism, city);
+    box(.6, .09, .18);
+    box(.7, .12, .1);
+    box(.83, .07, .22);
+    c.drawRRect(
+      RRect.fromRectAndRadius(
+          Rect.fromLTWH(w * .45, h * .6, w * .12, h * .2),
+          const Radius.circular(4)),
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5
+        ..color = _s.withValues(alpha: .2),
+    );
   }
 
-  void _paintCircuit(Canvas canvas, Size size) {
+  void _skyTravel(Canvas c, Size size) {
     final w = size.width;
     final h = size.height;
+    _horizonGlow(c, size, yf: 1.04, rf: .82, alpha: .5);
+    final city = Paint()..color = _s.withValues(alpha: .24);
+    void tower(double x, double bw, double bh, {bool spire = false}) {
+      c.drawRect(Rect.fromLTWH(w * x, h * .86 - h * bh, w * bw, h * bh), city);
+      if (spire) {
+        final s = Path()
+          ..moveTo(w * x, h * .86 - h * bh)
+          ..lineTo(w * x + w * bw / 2, h * .86 - h * bh - h * .05)
+          ..lineTo(w * x + w * bw, h * .86 - h * bh)
+          ..close();
+        c.drawPath(s, city);
+      }
+    }
 
-    // Жолдар — динамикалық қабаттағы сигналдар дәл осы геометриямен
-    // жүгіреді, сондықтан скроллмен жылжымауы керек.
+    tower(.04, .09, .12);
+    tower(.14, .07, .2, spire: true);
+    tower(.23, .1, .15);
+    tower(.66, .08, .18, spire: true);
+    tower(.76, .11, .12);
+    tower(.88, .08, .17);
+  }
+
+  void _cosmos(Canvas c, Size size) {
+    final w = size.width;
+    final h = size.height;
+    final planet = Offset(w * .2, h * 1.02);
+    final pr = w * .42;
+    final orbit = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2
+      ..color = _s.withValues(alpha: .2);
+    for (final k in [1.5, 2.1, 2.8]) {
+      _oval(c, planet, pr * k, pr * k * .42, orbit);
+    }
+    final pg = RadialGradient(
+      center: const Alignment(-.4, -.5),
+      colors: [
+        theme.horizonGlow.withValues(alpha: .9),
+        _s.withValues(alpha: .55),
+      ],
+    ).createShader(Rect.fromCircle(center: planet, radius: pr));
+    c.drawCircle(planet, pr, Paint()..shader = pg);
+    _oval(
+      c,
+      planet,
+      pr * 1.5,
+      pr * .55,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = w * .03
+        ..color = theme.horizonGlow.withValues(alpha: .35),
+    );
+  }
+
+  void _oval(Canvas c, Offset center, double rx, double ry, Paint p) {
+    c.drawOval(
+        Rect.fromCenter(center: center, width: rx * 2, height: ry * 2), p);
+  }
+
+  void _circuit(Canvas c, Size size) {
+    final w = size.width;
+    final h = size.height;
+    _horizonGlow(c, size, yf: 1.06, rf: .9, alpha: .3);
     final trace = Paint()
-      ..color = const Color(0x4D7B61FF)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.4
+      ..strokeJoin = StrokeJoin.round
+      ..color = _s.withValues(alpha: .22);
+    final rnd = Random(13);
+    for (var i = 0; i < 7; i++) {
+      final y = h * (.3 + i * .1);
+      final path = Path()..moveTo(0, y);
+      var x = 0.0;
+      var cy = y;
+      while (x < w) {
+        x += w * (.12 + rnd.nextDouble() * .16);
+        path.lineTo(x, cy);
+        if (rnd.nextBool()) {
+          final ny = (cy + (rnd.nextBool() ? 1 : -1) * h * .06)
+              .clamp(h * .22, h * .98);
+          path.lineTo(x, ny);
+          cy = ny;
+        }
+      }
+      c.drawPath(path, trace);
+    }
+    void chip(double x, double y, double s) {
+      final r = Rect.fromLTWH(w * x, h * y, s, s * .8);
+      c.drawRRect(
+        RRect.fromRectAndRadius(r, const Radius.circular(3)),
+        Paint()..color = _s.withValues(alpha: .3),
+      );
+      final leg = Paint()
+        ..color = _s.withValues(alpha: .35)
+        ..strokeWidth = 1.5;
+      for (var i = 0; i < 4; i++) {
+        final lx = r.left + r.width * (.2 + i * .22);
+        c.drawLine(Offset(lx, r.top), Offset(lx, r.top - 5), leg);
+        c.drawLine(Offset(lx, r.bottom), Offset(lx, r.bottom + 5), leg);
+      }
+    }
+
+    chip(.12, .82, w * .12);
+    chip(.74, .8, w * .14);
+  }
+
+  /// Биология: жасыл төбешіктер + өсімдік силуэттері (сабақ + жапырақтар).
+  void _flora(Canvas c, Size size) {
+    final w = size.width;
+    final h = size.height;
+    _horizonGlow(c, size, yf: 1.04, rf: .8);
+    _hill(c, size, baseY: .86, amp: .03, alpha: .18, phase: .4);
+    _hill(c, size, baseY: .92, amp: .04, alpha: .3, phase: 1.8);
+    void plant(double x, double baseY, double s) {
+      final base = Offset(w * x, h * baseY);
+      c.drawLine(
+        base,
+        base.translate(0, -s),
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = s * .08
+          ..strokeCap = StrokeCap.round
+          ..color = _s.withValues(alpha: .5),
+      );
+      final leaf = Paint()..color = _s.withValues(alpha: .42);
+      for (final dir in [-1.0, 1.0]) {
+        final ly = base.dy - s * .6;
+        c.drawPath(
+          Path()
+            ..moveTo(base.dx, ly)
+            ..quadraticBezierTo(
+                base.dx + dir * s * .5, ly - s * .2, base.dx + dir * s * .1,
+                ly - s * .45)
+            ..quadraticBezierTo(
+                base.dx + dir * s * .1, ly - s * .18, base.dx, ly)
+            ..close(),
+          leaf,
+        );
+      }
+    }
+
+    plant(.2, .95, h * .13);
+    plant(.78, .92, h * .17);
+    plant(.5, .97, h * .1);
+  }
+
+  /// Химия: көкжиек шапағы + Эрленмейер колбаларының силуэттері.
+  void _lab(Canvas c, Size size) {
+    final w = size.width;
+    final h = size.height;
+    _horizonGlow(c, size, yf: 1.05, rf: .82, alpha: .5);
+    void flask(double x, double baseY, double s) {
+      final cx = w * x;
+      final by = h * baseY;
+      final path = Path()
+        ..moveTo(cx - s * .12, by - s)
+        ..lineTo(cx - s * .12, by - s * .62)
+        ..lineTo(cx - s * .5, by)
+        ..lineTo(cx + s * .5, by)
+        ..lineTo(cx + s * .12, by - s * .62)
+        ..lineTo(cx + s * .12, by - s)
+        ..close();
+      c.drawPath(path, Paint()..color = _s.withValues(alpha: .26));
+      c.drawPath(
+        path,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2
+          ..strokeJoin = StrokeJoin.round
+          ..color = _s.withValues(alpha: .4),
+      );
+      c.drawLine(
+        Offset(cx - s * .32, by - s * .16),
+        Offset(cx + s * .32, by - s * .16),
+        Paint()
+          ..color = theme.horizonGlow.withValues(alpha: .55)
+          ..strokeWidth = 2.5,
+      );
+    }
+
+    flask(.22, .9, h * .2);
+    flask(.75, .93, h * .26);
+  }
+
+  /// Тарих: алтын дала + балбал тас (тас мүсін) + шаңырақ силуэттері.
+  void _heritage(Canvas c, Size size) {
+    final w = size.width;
+    final h = size.height;
+    _horizonGlow(c, size, yf: 1.04, rf: .8);
+    _hill(c, size, baseY: .88, amp: .03, alpha: .2, phase: .5);
+    void balbal(double x, double baseY, double s) {
+      final cx = w * x;
+      final by = h * baseY;
+      c.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(cx - s * .18, by - s, s * .36, s),
+          Radius.circular(s * .18),
+        ),
+        Paint()..color = _s.withValues(alpha: .4),
+      );
+      c.drawCircle(
+        Offset(cx, by - s),
+        s * .22,
+        Paint()..color = _s.withValues(alpha: .45),
+      );
+    }
+
+    balbal(.18, .95, h * .2);
+    balbal(.8, .92, h * .26);
+    final cx = w * .5;
+    final cy = h * .9;
+    final r = w * .05;
+    final ring = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2
-      ..strokeCap = StrokeCap.round;
-    final node = Paint()..color = const Color(0x807B61FF);
-
-    for (final pts in _circuitTraces(size)) {
-      final path = Path()..moveTo(pts.first.dx, pts.first.dy);
-      for (final p in pts.skip(1)) {
-        path.lineTo(p.dx, p.dy);
-      }
-      canvas.drawPath(path, trace);
-      canvas.drawCircle(pts.first, 3.4, node);
-      canvas.drawCircle(pts.last, 3.4, node);
+      ..color = _s.withValues(alpha: .3);
+    c.drawCircle(Offset(cx, cy), r, ring);
+    for (var i = 0; i < 6; i++) {
+      final a = i * pi / 3;
+      c.drawLine(Offset(cx, cy), Offset(cx + cos(a) * r, cy + sin(a) * r), ring);
     }
-
-    // Чиптер: дөңгеленген шаршы + аяқшалар.
-    void chip(Offset c, double s) {
-      final body = RRect.fromRectAndRadius(
-        Rect.fromCenter(center: c, width: 44 * s, height: 44 * s),
-        Radius.circular(8 * s),
-      );
-      canvas.drawRRect(body, Paint()..color = const Color(0x33121038));
-      canvas.drawRRect(
-        body,
-        Paint()
-          ..color = const Color(0x807B61FF)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2,
-      );
-      final pin = Paint()
-        ..color = const Color(0x807B61FF)
-        ..strokeWidth = 2;
-      for (var i = -1; i <= 1; i++) {
-        final dy = c.dy + i * 12 * s;
-        canvas.drawLine(
-            Offset(c.dx - 22 * s, dy), Offset(c.dx - 30 * s, dy), pin);
-        canvas.drawLine(
-            Offset(c.dx + 22 * s, dy), Offset(c.dx + 30 * s, dy), pin);
-      }
-      canvas.drawCircle(c, 5 * s,
-          Paint()..color = AppColors.accentCSCyan.withValues(alpha: .7));
-    }
-
-    chip(Offset(w * .2, h * .22), 1);
-    chip(Offset(w * .84, h * .5), .8);
-    chip(Offset(w * .14, h * .78), .9);
   }
 
   @override
-  bool shouldRepaint(_AnchoredWorldPainter old) =>
-      old.world != world || old.accent != accent;
+  bool shouldRepaint(_SceneryPainter old) => old.theme != theme;
 }
 
-// ---------------- Динамикалық қабат ----------------
+/// ТІРІ анимация қабаты — әр пәннің әлемін қозғалысқа келтіреді.
+/// Барлық қозғалыс [t] (0..1, циклдік) арқылы; жіксіз болу үшін бүтін
+/// жиіліктер (sin) мен бүтін жылдамдықтар (дрейф) қолданылады.
+class _LifePainter extends CustomPainter {
+  const _LifePainter({
+    required this.theme,
+    required this.accent,
+    required this.t,
+    this.companion,
+  });
 
-class _DynamicWorldPainter extends CustomPainter {
-  const _DynamicWorldPainter({required this.world, required this.t});
-
-  final SubjectWorld world;
+  final SubjectWorldTheme theme;
+  final Color accent;
   final double t;
+  final Color? companion;
 
-  /// Цикл бойынша жұмсақ ілгері-кейін тербеліс (-1..1).
-  double get _sway => sin(t * 2 * pi);
+  Color get _s => theme.scenery;
+  Color get _glow => theme.horizonGlow;
+
+  /// Жоғары қарай жіксіз дрейф фракциясы [0,1) (speed — бүтін).
+  double _frac(double base, int speed) {
+    final v = (base + t * speed) % 1.0;
+    return v < 0 ? v + 1 : v;
+  }
+
+  @override
+  void paint(Canvas c, Size size) {
+    switch (theme.world) {
+      case SubjectWorld.steppe:
+        _steppe(c, size);
+      case SubjectWorld.geometry:
+        _geometry(c, size);
+      case SubjectWorld.skyTravel:
+        _sky(c, size);
+      case SubjectWorld.cosmos:
+        _cosmos(c, size);
+      case SubjectWorld.circuit:
+        _circuit(c, size);
+      case SubjectWorld.flora:
+        _flora(c, size);
+      case SubjectWorld.lab:
+        _lab(c, size);
+      case SubjectWorld.heritage:
+        _heritage(c, size);
+    }
+    _eagle(c, size);
+  }
+
+  /// Ұшқан бөлшектер (тозаң / ұшқын / дерек) — жоғары қарай жіктеледі.
+  void _motes(Canvas c, Size size, Color color, int n, double maxR) {
+    final w = size.width;
+    final h = size.height;
+    for (var i = 0; i < n; i++) {
+      final r = Random(i * 131 + 5);
+      final fr = _frac(r.nextDouble(), 1 + (i % 2));
+      final y = h * (1 - fr);
+      final x = r.nextDouble() * w + sin(t * 2 * pi + i) * 8;
+      final rad = maxR * (.4 + r.nextDouble() * .6);
+      final tw = .35 + .65 * (.5 + .5 * sin(t * 2 * pi * (2 + i % 3) + i));
+      c.drawCircle(Offset(x, y), rad, Paint()..color = color.withValues(alpha: .3 * tw));
+    }
+  }
+
+  /// Аспанда сырғыған қыран (бренд) — қанаттарын қағады. Серік түсі берілсе —
+  /// оқушының серігі (Бектұр/Назым) болып, жұмсақ жарқыл әрі қозғалыс ізімен ұшады.
+  void _eagle(Canvas c, Size size) {
+    final w = size.width;
+    final h = size.height;
+    final x = -140 + t * (w + 280);
+    final y = h * .14 + sin(t * 2 * pi * 2) * 10;
+    final flap = sin(t * 2 * pi * 6);
+    final s = (w * .055).clamp(10.0, 30.0);
+    final base = companion ?? (theme.isDark ? Colors.white : _s);
+
+    if (companion != null) {
+      // Серіктің жұмсақ аурасы — кез келген фонда бөлектеніп тұрады.
+      c.drawCircle(
+        Offset(x, y),
+        s * 2.2,
+        Paint()
+          ..shader = RadialGradient(colors: [
+            base.withValues(alpha: .22),
+            base.withValues(alpha: 0),
+          ]).createShader(
+              Rect.fromCircle(center: Offset(x, y), radius: s * 2.2)),
+      );
+      // Қозғалыс ізі — артта солғындай екі елес.
+      for (var k = 2; k >= 1; k--) {
+        _eagleShape(
+          c,
+          x - k * s * .9,
+          y + sin(t * 2 * pi * 2 - k * .5) * 3,
+          s * (1 - k * .12),
+          base.withValues(alpha: .10 / k),
+          flap,
+        );
+      }
+    }
+
+    _eagleShape(
+        c, x, y, s, base.withValues(alpha: companion != null ? .5 : .3), flap);
+  }
+
+  /// Қыран силуэтін (дене + екі қанат) берілген орын/өлшем/түспен салады.
+  void _eagleShape(
+      Canvas c, double x, double y, double s, Color col, double flap) {
+    final p = Paint()..color = col;
+    c.drawCircle(Offset(x, y), s * .22, p);
+    final lift = s * .7 * (.55 + flap * .45);
+    c.drawPath(
+      Path()
+        ..moveTo(x, y - s * .1)
+        ..quadraticBezierTo(x - s * 1.1, y - lift, x - s * 2.1, y + s * .12)
+        ..quadraticBezierTo(x - s, y + s * .16, x, y + s * .14)
+        ..close(),
+      p,
+    );
+    c.drawPath(
+      Path()
+        ..moveTo(x, y - s * .1)
+        ..quadraticBezierTo(x + s * 1.1, y - lift, x + s * 2.1, y + s * .12)
+        ..quadraticBezierTo(x + s, y + s * .16, x, y + s * .14)
+        ..close(),
+      p,
+    );
+  }
+
+  void _steppe(Canvas c, Size size) {
+    final w = size.width;
+    final h = size.height;
+    // Көкжиектен таралатын жұмсақ шапақ сәулелері (жыпылықтайды).
+    final rayC = Offset(w * .5, h * 1.03);
+    for (var i = -3; i <= 3; i++) {
+      final ang = -pi / 2 + i * .2;
+      final shimmer = .05 + .04 * (.5 + .5 * sin(t * 2 * pi * 2 + i));
+      final far = rayC + Offset(cos(ang), sin(ang)) * h * .95;
+      c.drawPath(
+        Path()
+          ..moveTo(rayC.dx, rayC.dy)
+          ..lineTo(far.dx - 16, far.dy)
+          ..lineTo(far.dx + 16, far.dy)
+          ..close(),
+        Paint()
+          ..blendMode = BlendMode.plus
+          ..shader = ui.Gradient.linear(rayC, far, [
+            _glow.withValues(alpha: shimmer),
+            _glow.withValues(alpha: 0),
+          ]),
+      );
+    }
+    // Сырғыған құстар.
+    final bird = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2
+      ..strokeCap = StrokeCap.round
+      ..color = _s.withValues(alpha: .34);
+    for (var k = 0; k < 3; k++) {
+      final bx = _frac(k * .33, 1) * (w + 80) - 40;
+      final by = h * (.26 + k * .05) + sin(t * 2 * pi * 3 + k) * 4;
+      _chevron(c, Offset(bx, by), w * (.024 - k * .003), bird);
+    }
+    _motes(c, size, _glow, 16, 2.4);
+  }
+
+  void _geometry(Canvas c, Size size) {
+    final w = size.width;
+    final h = size.height;
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.4;
+    for (var i = 0; i < 14; i++) {
+      final r = Random(i * 71 + 3);
+      final fr = _frac(r.nextDouble(), 1 + (i % 2));
+      final y = h * (1 - fr);
+      final x = r.nextDouble() * w;
+      final sz = 4.0 + r.nextDouble() * 5;
+      paint.color =
+          _s.withValues(alpha: .2 * (.5 + .5 * sin(t * 2 * pi * 2 + i)));
+      c.save();
+      c.translate(x, y);
+      c.rotate(t * 2 * pi * (i.isEven ? 1 : -1) + i);
+      switch (i % 3) {
+        case 0:
+          c.drawPath(
+            Path()
+              ..moveTo(0, -sz)
+              ..lineTo(sz * .9, sz * .6)
+              ..lineTo(-sz * .9, sz * .6)
+              ..close(),
+            paint,
+          );
+        case 1:
+          c.drawLine(Offset(-sz, 0), Offset(sz, 0), paint);
+          c.drawLine(Offset(0, -sz), Offset(0, sz), paint);
+        default:
+          c.drawCircle(Offset.zero, sz * .8, paint);
+      }
+      c.restore();
+    }
+  }
+
+  void _sky(Canvas c, Size size) {
+    final w = size.width;
+    final h = size.height;
+    final cloud = Paint()..color = Colors.white.withValues(alpha: .14);
+    for (var k = 0; k < 3; k++) {
+      final r = Random(k * 97 + 1);
+      final cx = ((r.nextDouble() + t) % 1) * (w + 220) - 110;
+      _cloud(c, Offset(cx, h * (.42 + k * .12)), w * (.1 + r.nextDouble() * .04),
+          cloud);
+    }
+    final cols = [_s, _glow, accent];
+    for (var k = 0; k < 3; k++) {
+      final bx = w * (.2 + k * .28) + sin(t * 2 * pi + k) * 14;
+      final by = h * (.24 + k * .06) + sin(t * 2 * pi * 2 + k) * 16;
+      _balloon(c, Offset(bx, by), w * (.06 - k * .01),
+          cols[k % cols.length].withValues(alpha: .42 - k * .06));
+    }
+    _motes(c, size, Colors.white, 10, 1.8);
+  }
+
+  void _cosmos(Canvas c, Size size) {
+    final w = size.width;
+    final h = size.height;
+    // Жымыңдаған жұлдыздар.
+    final rnd = Random(7);
+    for (var i = 0; i < 54; i++) {
+      final px = rnd.nextDouble() * w;
+      final py = rnd.nextDouble() * h * .92;
+      final base = .12 + rnd.nextDouble() * .5;
+      final a = (base * (.5 + .5 * sin(t * 2 * pi * (2 + i % 4) + i)))
+          .clamp(0.0, 1.0);
+      c.drawCircle(Offset(px, py), rnd.nextDouble() * 1.3 + .4,
+          Paint()..color = Colors.white.withValues(alpha: a));
+    }
+    // Орбита бойымен айналатын ай.
+    final planet = Offset(w * .2, h * 1.02);
+    final ang = t * 2 * pi;
+    final moon = Offset(planet.dx + cos(ang) * w * .6,
+        planet.dy + sin(ang) * w * .6 * .42);
+    c.drawCircle(
+      moon,
+      w * .05,
+      Paint()
+        ..shader = RadialGradient(
+          colors: [_glow.withValues(alpha: .35), _glow.withValues(alpha: 0)],
+        ).createShader(Rect.fromCircle(center: moon, radius: w * .05)),
+    );
+    c.drawCircle(moon, w * .024,
+        Paint()..color = const Color(0xFFE9E4FF).withValues(alpha: .75));
+    // Ұшқан жұлдыздар (циклде екі рет).
+    for (final base in [0.18, 0.66]) {
+      var local = t - base;
+      if (local < 0) local += 1;
+      if (local < 0.1) {
+        final p = local / 0.1;
+        final head = Offset(w * .15 + p * w * .55, h * .1 + p * h * .22);
+        final tail = Offset(head.dx - w * .13, head.dy - h * .055);
+        final a = sin(p * pi);
+        c.drawLine(
+          head,
+          tail,
+          Paint()
+            ..strokeWidth = 2
+            ..strokeCap = StrokeCap.round
+            ..shader = ui.Gradient.linear(head, tail, [
+              Colors.white.withValues(alpha: .9 * a),
+              Colors.white.withValues(alpha: 0),
+            ]),
+        );
+        c.drawCircle(
+            head, 1.9, Paint()..color = Colors.white.withValues(alpha: a));
+      }
+    }
+    _motes(c, size, Colors.white, 8, 1.5);
+  }
+
+  void _circuit(Canvas c, Size size) {
+    final w = size.width;
+    final h = size.height;
+    // Трассалар бойымен жүгіретін энергия импульстері.
+    for (var i = 0; i < 7; i++) {
+      final y = h * (.3 + i * .1);
+      final x = _frac(i * .13, 1 + (i % 2)) * w;
+      final tail = Offset(x - w * .1, y);
+      c.drawLine(
+        Offset(x, y),
+        tail,
+        Paint()
+          ..strokeWidth = 2.4
+          ..strokeCap = StrokeCap.round
+          ..shader = ui.Gradient.linear(Offset(x, y), tail, [
+            _glow.withValues(alpha: .9),
+            _glow.withValues(alpha: 0),
+          ]),
+      );
+      c.drawCircle(
+        Offset(x, y),
+        2.4,
+        Paint()
+          ..color = _glow.withValues(alpha: .95)
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 2),
+      );
+      c.drawCircle(
+          Offset(x, y), 1.5, Paint()..color = Colors.white.withValues(alpha: .9));
+    }
+    // Жыпылықтаған контактілер.
+    final rnd = Random(21);
+    for (var k = 0; k < 10; k++) {
+      final a = .2 + .6 * (.5 + .5 * sin(t * 2 * pi * (2 + k % 3) + k));
+      c.drawCircle(
+        Offset(rnd.nextDouble() * w, h * (.28 + rnd.nextDouble() * .68)),
+        1.8,
+        Paint()..color = _glow.withValues(alpha: a),
+      );
+    }
+    // Қалқыған «0/1» биттер.
+    final tp = TextPainter(textDirection: TextDirection.ltr);
+    for (var k = 0; k < 10; k++) {
+      final r = Random(k * 61 + 2);
+      final y = h * (1 - _frac(r.nextDouble(), 1 + (k % 2)));
+      tp.text = TextSpan(
+        text: k.isEven ? '1' : '0',
+        style: TextStyle(
+          color: _glow.withValues(alpha: .32),
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+        ),
+      );
+      tp
+        ..layout()
+        ..paint(c, Offset(r.nextDouble() * w, y));
+    }
+  }
+
+  /// Биология: жасыл тозаң/спора жоғары қарай нәзік қалқиды.
+  void _flora(Canvas c, Size size) {
+    _motes(c, size, const Color(0xFF7CC98A), 14, 3);
+  }
+
+  /// Химия: көгілдір көпіршіктер жоғары көтеріледі.
+  void _lab(Canvas c, Size size) {
+    _motes(c, size, const Color(0xFF7FD8E0), 12, 4);
+  }
+
+  /// Тарих: алтын дала шаңы жоғары қарай нәзік қалқиды.
+  void _heritage(Canvas c, Size size) {
+    _motes(c, size, const Color(0xFFE7C77A), 12, 3);
+  }
+
+  @override
+  bool shouldRepaint(_LifePainter old) =>
+      old.t != t ||
+      old.theme != theme ||
+      old.accent != accent ||
+      old.companion != companion;
+}
+
+/// Жұмсақ жарқыл орбтары — фонға тыныш премиум тереңдік (blursіз шейдер).
+class _GlowPainter extends CustomPainter {
+  const _GlowPainter({required this.accent, required this.isDark});
+
+  final Color accent;
+  final bool isDark;
+
+  void _orb(Canvas canvas, Offset c, double r, double alpha) {
+    final color = accent.withValues(alpha: alpha);
+    canvas.drawCircle(
+      c,
+      r,
+      Paint()
+        ..shader = RadialGradient(
+          colors: [color, color.withValues(alpha: 0)],
+        ).createShader(Rect.fromCircle(center: c, radius: r)),
+    );
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
-    switch (world) {
-      case SubjectWorld.steppe:
-        _paintSteppe(canvas, size);
-      case SubjectWorld.geometry:
-        _paintGeometry(canvas, size);
-      case SubjectWorld.skyTravel:
-        _paintSkyTravel(canvas, size);
-      case SubjectWorld.cosmos:
-        _paintCosmos(canvas, size);
-      case SubjectWorld.circuit:
-        _paintCircuit(canvas, size);
-    }
-  }
-
-  void _paintSteppe(Canvas canvas, Size size) {
     final w = size.width;
     final h = size.height;
-    final drift = _sway * 10;
-
-    // Қалықтаған қырандар.
-    final eagle = Paint()
-      ..color = const Color(0x802D1B69)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.4
-      ..strokeCap = StrokeCap.round;
-    _drawBird(canvas, Offset(w * .3 + drift, h * .16), 1.6, eagle);
-    _drawBird(canvas, Offset(w * .72 - drift, h * .1), 1.1, eagle);
-
-    // Бұлттар (жай дрейф).
-    final cloud = Paint()..color = const Color(0xB3FFFFFF);
-    _drawCloud(canvas, w * .2 + drift, h * .32, 1.1, cloud);
-    _drawCloud(canvas, w * .8 - drift, h * .45, .9, cloud);
-    _drawCloud(canvas, w * .68 + drift, h * .2, 1.2, cloud);
-    _drawCloud(canvas, w * .15 - drift, h * .6, .8, cloud);
+    _orb(canvas, Offset(w * .84, h * .16), 170, isDark ? .26 : .16);
+    _orb(canvas, Offset(w * .08, h * .48), 150, isDark ? .22 : .12);
+    _orb(canvas, Offset(w * .74, h * .84), 140, isDark ? .2 : .09);
   }
 
-  void _paintGeometry(Canvas canvas, Size size) {
+  @override
+  bool shouldRepaint(_GlowPainter old) =>
+      old.accent != accent || old.isDark != isDark;
+}
+
+/// Кинематографиялық vignette: шеттер мен бұрыштарды күңгірттендіріп, көзді
+/// ортадағы жолға бағыттайды.
+class _VignettePainter extends CustomPainter {
+  const _VignettePainter({required this.isDark});
+
+  final bool isDark;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = Offset.zero & size;
+    final edge = isDark ? .34 : .14;
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..shader = RadialGradient(
+          center: const Alignment(0, -.1),
+          radius: 1.05,
+          colors: [
+            const Color(0x00000000),
+            Color.fromRGBO(8, 8, 28, edge),
+          ],
+          stops: const [.6, 1],
+        ).createShader(rect),
+    );
+    canvas.drawRect(
+      rect,
+      Paint()
+        ..shader = LinearGradient(
+          begin: Alignment.bottomCenter,
+          end: Alignment.center,
+          colors: [
+            Color.fromRGBO(6, 6, 24, isDark ? .4 : .12),
+            const Color(0x00000000),
+          ],
+        ).createShader(rect),
+    );
+  }
+
+  @override
+  bool shouldRepaint(_VignettePainter old) => old.isDark != isDark;
+}
+
+/// Ұлы тұлғалар галереясы: портреттер жолдың сол/оң қапталында «тұрады»
+/// (астында жұмсақ spotlight + жер көлеңкесі), скроллда параллакспен жылжиды.
+class _LegendsPainter extends CustomPainter {
+  const _LegendsPainter({
+    required this.images,
+    required this.scrollOffset,
+    required this.accent,
+    required this.isDark,
+  });
+
+  final List<ui.Image> images;
+  final double scrollOffset;
+  final Color accent;
+  final bool isDark;
+
+  static const double _gap = 360;
+  static const double _figW = 150;
+  static const double _figH = 200;
+  static const double _parallax = .3;
+
+  @override
+  void paint(Canvas canvas, Size size) {
     final w = size.width;
     final h = size.height;
-    final drift = _sway * 8;
+    final n = images.length;
+    if (n == 0) return;
+    final tileH = n * _gap;
+    final sh = tileH <= 0 ? 0.0 : (scrollOffset * _parallax) % tileH;
+    final opacity = isDark ? .9 : .74;
+    final paint = Paint()
+      ..color = Color.fromRGBO(0, 0, 0, opacity)
+      ..filterQuality = FilterQuality.medium;
+    final spotColor = isDark ? AppColors.white : accent;
 
-    // Қалқыған пішіндер: үшбұрыш, шеңбер, шаршы, алтыбұрыш.
-    final stroke = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2.6
-      ..strokeCap = StrokeCap.round;
-
-    void poly(Offset c, double r, int sides, double rot, Color color) {
-      stroke.color = color;
-      final path = Path();
-      for (var i = 0; i <= sides; i++) {
-        final a = rot + i * 2 * pi / sides;
-        final p = Offset(c.dx + r * cos(a), c.dy + r * sin(a));
-        i == 0 ? path.moveTo(p.dx, p.dy) : path.lineTo(p.dx, p.dy);
+    for (final tileOff in [-sh, tileH - sh]) {
+      for (var k = 0; k < n; k++) {
+        final jitter = ((k * 53) % 40) - 12.0;
+        final y = k * _gap + 60 + tileOff + jitter;
+        if (y > h + _figH || y < -_figH) continue;
+        final onLeft = k.isEven;
+        final dx = onLeft ? -_figW * .2 : w - _figW * .8;
+        final cx = dx + _figW * .5;
+        final spotR = _figW * .62;
+        final spotC = Offset(cx, y + _figH * .42);
+        canvas.drawCircle(
+          spotC,
+          spotR,
+          Paint()
+            ..shader = RadialGradient(
+              colors: [
+                spotColor.withValues(alpha: isDark ? .16 : .2),
+                spotColor.withValues(alpha: 0),
+              ],
+            ).createShader(Rect.fromCircle(center: spotC, radius: spotR)),
+        );
+        canvas.drawOval(
+          Rect.fromCenter(
+              center: Offset(cx, y + _figH * .9),
+              width: _figW * .7,
+              height: _figH * .12),
+          Paint()
+            ..color = Color.fromRGBO(0, 0, 0, isDark ? .25 : .12)
+            ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6),
+        );
+        final img = images[k % n];
+        canvas.drawImageRect(
+          img,
+          Rect.fromLTWH(0, 0, img.width.toDouble(), img.height.toDouble()),
+          Rect.fromLTWH(dx, y, _figW, _figH),
+          paint,
+        );
       }
-      canvas.drawPath(path, stroke);
-    }
-
-    poly(Offset(w * .14, h * .25 + drift), 26, 3, -pi / 2 + _sway * .15,
-        const Color(0x59F5A623));
-    poly(Offset(w * .86, h * .38 - drift), 22, 4, pi / 4 + _sway * .1,
-        const Color(0x597B61FF));
-    poly(Offset(w * .8, h * .72 + drift), 26, 6, _sway * .12,
-        const Color(0x5900C48C));
-    stroke.color = const Color(0x594A6CF7);
-    canvas.drawCircle(Offset(w * .12, h * .62 - drift), 22, stroke);
-    canvas.drawCircle(Offset(w * .5, h * .12 + drift), 14, stroke);
-  }
-
-  void _paintSkyTravel(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    final lift = _sway * 14;
-
-    // Әуе шарлары.
-    void balloon(Offset c, double s, Color color) {
-      final body = Paint()..color = color;
-      canvas.drawCircle(c, 22 * s, body);
-      canvas.drawPath(
-        Path()
-          ..moveTo(c.dx - 14 * s, c.dy + 14 * s)
-          ..quadraticBezierTo(c.dx, c.dy + 34 * s, c.dx + 14 * s, c.dy + 14 * s)
-          ..close(),
-        body,
-      );
-      final line = Paint()
-        ..color = color.withValues(alpha: .8)
-        ..strokeWidth = 1.4;
-      canvas.drawLine(Offset(c.dx - 8 * s, c.dy + 20 * s),
-          Offset(c.dx - 5 * s, c.dy + 36 * s), line);
-      canvas.drawLine(Offset(c.dx + 8 * s, c.dy + 20 * s),
-          Offset(c.dx + 5 * s, c.dy + 36 * s), line);
-      canvas.drawRect(
-        Rect.fromCenter(
-            center: Offset(c.dx, c.dy + 40 * s), width: 12 * s, height: 9 * s),
-        Paint()..color = const Color(0xB39A6200),
-      );
-    }
-
-    balloon(Offset(w * .18, h * .3 - lift), 1.1, const Color(0xCCFF8C42));
-    balloon(Offset(w * .82, h * .5 + lift), .85, const Color(0xCC4A6CF7));
-    balloon(Offset(w * .62, h * .14 - lift * .6), .7, const Color(0xCCFF6FA5));
-
-    // Бұлттар мен құстар.
-    final cloud = Paint()..color = const Color(0xB3FFFFFF);
-    _drawCloud(canvas, w * .35 + lift, h * .42, 1.0, cloud);
-    _drawCloud(canvas, w * .75 - lift, h * .68, .9, cloud);
-    _drawCloud(canvas, w * .12 + lift, h * .76, .75, cloud);
-    final bird = Paint()
-      ..color = const Color(0x662D1B69)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 2
-      ..strokeCap = StrokeCap.round;
-    _drawBird(canvas, Offset(w * .4 - lift, h * .22), 1.0, bird);
-    _drawBird(canvas, Offset(w * .5 - lift, h * .25), .7, bird);
-  }
-
-  void _paintCosmos(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-
-    // Электрон (атом орбитасында).
-    final atomCenter = Offset(w * .16, h * .18);
-    final ea = _sway * pi + 1;
-    canvas.drawCircle(
-      Offset(atomCenter.dx + 32 * cos(ea), atomCenter.dy + 12 * sin(ea)),
-      3.4,
-      Paint()..color = const Color(0xFFFFD700),
-    );
-
-    // Құйрықты жұлдыз.
-    final cometHead = Offset(w * (.3 + .4 * t), h * (.66 - .08 * _sway));
-    final tail = Paint()
-      ..shader = LinearGradient(
-        colors: [const Color(0x00FFFFFF), const Color(0xB3FFFFFF)],
-      ).createShader(
-          Rect.fromPoints(cometHead - const Offset(70, -26), cometHead));
-    canvas.drawPath(
-      Path()
-        ..moveTo(cometHead.dx - 70, cometHead.dy + 26)
-        ..lineTo(cometHead.dx, cometHead.dy - 2)
-        ..lineTo(cometHead.dx - 64, cometHead.dy + 34)
-        ..close(),
-      tail,
-    );
-    canvas.drawCircle(cometHead, 4, Paint()..color = AppColors.white);
-  }
-
-  void _paintCircuit(Canvas canvas, Size size) {
-    // Жолдар бойымен жүгіретін жарқыраған сигналдар (cyan).
-    final signal = Paint()..color = AppColors.accentCSCyan;
-    final signalGlow = Paint()
-      ..color = AppColors.accentCSCyan.withValues(alpha: .35);
-    final traces = _circuitTraces(size);
-    for (var i = 0; i < traces.length; i += 2) {
-      final pts = traces[i];
-      final progress = ((t + i * .17) % 1) * (pts.length - 1);
-      final seg = progress.floor().clamp(0, pts.length - 2);
-      final local = progress - seg;
-      final pos = Offset.lerp(pts[seg], pts[seg + 1], local)!;
-      canvas.drawCircle(pos, 7, signalGlow);
-      canvas.drawCircle(pos, 3, signal);
     }
   }
 
   @override
-  bool shouldRepaint(_DynamicWorldPainter old) =>
-      old.world != world || old.t != t;
+  bool shouldRepaint(_LegendsPainter old) =>
+      old.scrollOffset != scrollOffset ||
+      old.images != images ||
+      old.accent != accent ||
+      old.isDark != isDark;
+}
+
+/// Формула / символ / әріптер: жолдың бойымен сирек, нәзік қалқиды.
+class _GlyphsPainter extends CustomPainter {
+  const _GlyphsPainter({
+    required this.glyphs,
+    required this.accent,
+    required this.isDark,
+    required this.t,
+    required this.scrollOffset,
+  });
+
+  final List<String> glyphs;
+  final Color accent;
+  final bool isDark;
+  final double t;
+  final double scrollOffset;
+
+  static const double _gap = 232;
+  static const double _parallax = .46;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final w = size.width;
+    final h = size.height;
+    final n = glyphs.length;
+    if (n == 0) return;
+    final tileH = n * _gap;
+    final sh = tileH <= 0 ? 0.0 : (scrollOffset * _parallax) % tileH;
+    final base = isDark ? AppColors.white : accent;
+
+    for (final tileOff in [-sh, tileH - sh]) {
+      for (var k = 0; k < n; k++) {
+        final r = Random(k * 911 + 17);
+        final x = 24 + r.nextDouble() * (w - 150);
+        final bob = sin(t * 2 * pi + k) * 5;
+        final y = k * _gap + r.nextDouble() * _gap * .55 + tileOff + bob;
+        if (y > h + 30 || y < -30) continue;
+        final size0 = 12.5 + r.nextDouble() * 7;
+        final alpha = (isDark ? .24 : .17) * (.7 + r.nextDouble() * .5);
+        final tp = TextPainter(
+          text: TextSpan(
+            text: glyphs[k],
+            style: TextStyle(
+              color: base.withValues(alpha: alpha),
+              fontSize: size0,
+              fontWeight: FontWeight.w700,
+              letterSpacing: .5,
+            ),
+          ),
+          textDirection: TextDirection.ltr,
+        )..layout(maxWidth: w * .6);
+        tp.paint(canvas, Offset(x, y));
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(_GlyphsPainter old) =>
+      old.t != t ||
+      old.scrollOffset != scrollOffset ||
+      old.accent != accent ||
+      old.isDark != isDark ||
+      old.glyphs != glyphs;
 }

@@ -39,8 +39,18 @@ class QuestNotifier extends StateNotifier<List<DailyQuest>> {
     return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
   }
 
+  /// Жүктелген күннің кілті — түн ортасынан кейін ескі күн квесттері жаңа
+  /// күн кілтімен сақталып қалмауы үшін (қосымша ашық қалғанда).
+  String? _loadedDay;
+
+  /// Күн ауысқанын байқаса — жаңа күннің квесттерін қайта жүктейді.
+  void _ensureToday() {
+    if (_loadedDay != null && _loadedDay != _todayKey) _loadToday();
+  }
+
   void _loadToday() {
     if (_userId == null) return;
+    _loadedDay = _todayKey;
     try {
       final saved = _storage.getDailyQuests(_userId, _todayKey);
       if (saved != null) {
@@ -80,6 +90,7 @@ class QuestNotifier extends StateNotifier<List<DailyQuest>> {
 
   /// Оқиға бойынша сәйкес квесттердің прогресін арттыру.
   Future<void> track(QuestType type, [int amount = 1]) async {
+    _ensureToday();
     var changed = false;
     state = [
       for (final d in state)
@@ -101,6 +112,7 @@ class QuestNotifier extends StateNotifier<List<DailyQuest>> {
 
   /// Streak квесттері ағымдағы streak мәнімен тікелей жаңартылады.
   Future<void> syncStreak(int streak) async {
+    _ensureToday();
     var changed = false;
     state = [
       for (final d in state)
@@ -122,6 +134,7 @@ class QuestNotifier extends StateNotifier<List<DailyQuest>> {
 
   /// Сыйлықты алу: марапаттар game_provider арқылы беріледі.
   Future<bool> claimReward(String questId) async {
+    _ensureToday();
     final index = state.indexWhere((d) => d.quest.id == questId);
     if (index == -1) return false;
     final daily = state[index];

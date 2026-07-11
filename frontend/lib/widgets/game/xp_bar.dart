@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_icons.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
+import '../ui/stat_label.dart';
 
 /// XP прогресс жолағы: деңгей ішіндегі ілгерілеу.
 class XpBar extends StatelessWidget {
@@ -31,7 +33,7 @@ class XpBar extends StatelessWidget {
             height: height,
             child: Stack(
               children: [
-                Container(color: AppColors.cloudBorder),
+                Container(color: AppColors.border),
                 AnimatedFractionallySizedBox(
                   duration: const Duration(milliseconds: 500),
                   curve: Curves.easeOutCubic,
@@ -47,8 +49,12 @@ class XpBar extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.sp1),
-        Text(
-          '⚡ $xpIntoLevel / $xpForNextLevel XP',
+        StatLabel(
+          icon: AppIcons.xp,
+          text: '$xpIntoLevel / $xpForNextLevel XP',
+          color: AppColors.inkSoft,
+          iconColor: AppColors.eagleBlue,
+          iconSize: 14,
           style: AppTypography.caption,
         ),
       ],

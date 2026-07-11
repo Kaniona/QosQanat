@@ -39,6 +39,21 @@ export const tutorCheckSchema = Joi.object({
   grade: Joi.number().integer().min(5).max(11).default(8)
 }).unknown(true);
 
+// Прогресс синхрондау сұлбасы (бұлтқа сақтау).
+export const progressSyncSchema = Joi.object({
+  student_id: Joi.string().required().min(1).max(100),
+  name: Joi.string().allow('').max(80),
+  grade: Joi.number().integer().min(1).max(11).default(5),
+  school: Joi.string().allow('').max(120),
+  city: Joi.string().allow('').max(80),
+  skills: Joi.array().items(Joi.object().unknown(true)).max(500).default([]),
+  nodes: Joi.array().items(Joi.object().unknown(true)).max(3000).default([]),
+  streak: Joi.number().integer().min(0).default(0),
+  longest_streak: Joi.number().integer().min(0).default(0),
+  akyl: Joi.number().integer().min(0).default(0),
+  level: Joi.number().integer().min(1).default(1)
+}).unknown(true);
+
 // Validation middleware factory
 export const validateRequest = (schema) => {
   return (req, res, next) => {

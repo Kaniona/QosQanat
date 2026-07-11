@@ -11,6 +11,9 @@ import chatRoutes from './routes/chat.routes.js';
 import voiceRoutes from './routes/voice.routes.js';
 import tutorRoutes from './routes/tutor.routes.js';
 import healthRoutes from './routes/health.routes.js';
+import progressRoutes from './routes/progress.routes.js';
+import analyticsRoutes from './routes/analytics.routes.js';
+import contentRoutes from './routes/content.routes.js';
 import { errorHandler } from './middleware/errorHandler.middleware.js';
 import { logger } from './utils/logger.js';
 import { validateEnvironment, validateConfig } from './config/validation.js';
@@ -123,6 +126,9 @@ const startup = async () => {
     app.use('/api/voice', voiceRoutes);
     app.use('/api/tutor', tutorRoutes);
     app.use('/api/health', healthRoutes);
+    app.use('/api/progress', progressRoutes);
+    app.use('/api/analytics', analyticsRoutes);
+    app.use('/api/content', contentRoutes);
 
     // 11. Root endpoint
     app.get('/', (req, res) => {

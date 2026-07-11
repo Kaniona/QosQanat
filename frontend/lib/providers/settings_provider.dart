@@ -1,12 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../core/utils/app_haptics.dart';
+import '../core/utils/app_sounds.dart';
 import '../services/local_storage_service.dart';
 import 'auth_provider.dart';
 
 class SettingsState {
   const SettingsState({
-    this.darkMode = false,
+    this.darkMode = true,
     this.soundOn = true,
     this.vibrationOn = true,
     this.animationsOn = true,
@@ -60,8 +61,19 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
 
   void _load() {
     final p = _storage.prefs;
+    // Бір реттік көшу (v2): бұрынғы нұсқаларда әдепкі тема ашық болатын әрі
+    // кез келген баптауды өзгерткенде set_dark=false болып сақталып қалуы мүмкін.
+    // Қолданушыны бір рет қараңғы темаға көшіреміз; содан кейін қосқыш (toggle)
+    // таңдауын құрметтейміз.
+    final migratedDarkV2 = p.getBool('set_theme_dark_v2') ?? false;
+    var dark = p.getBool('set_dark') ?? true;
+    if (!migratedDarkV2) {
+      dark = true;
+      p.setBool('set_dark', true);
+      p.setBool('set_theme_dark_v2', true);
+    }
     state = SettingsState(
-      darkMode: p.getBool('set_dark') ?? false,
+      darkMode: dark,
       soundOn: p.getBool('set_sound') ?? true,
       vibrationOn: p.getBool('set_vibration') ?? true,
       animationsOn: p.getBool('set_animations') ?? true,
@@ -71,6 +83,7 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
       language: p.getString('set_language') ?? 'QAZ',
     );
     AppHaptics.enabled = state.vibrationOn;
+    AppSounds.enabled = state.soundOn;
   }
 
   Future<void> _save() async {
@@ -92,6 +105,7 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
 
   Future<void> toggleSound(bool value) async {
     state = state.copyWith(soundOn: value);
+    AppSounds.enabled = value;
     await _save();
   }
 

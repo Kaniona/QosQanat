@@ -143,7 +143,7 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
                   width: double.infinity,
                   child: Stack(
                     children: [
-                      Container(color: AppColors.cloudBorder),
+                      Container(color: AppColors.border),
                       AnimatedFractionallySizedBox(
                         duration: const Duration(milliseconds: 900),
                         curve: Curves.linear,
@@ -166,6 +166,10 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
                     '${AppStrings.questionCounter} ${state.currentIndex + 1}/${battle.questions.length}',
                     style: AppTypography.caption,
                   ),
+                  if (state.myStreak >= 2)
+                    _ComboBadge(streak: state.myStreak)
+                  else
+                    const SizedBox.shrink(),
                   Text(
                     Formatters.timer(_secondsLeft.clamp(0, 99)),
                     style: AppTypography.caption.copyWith(
@@ -182,7 +186,7 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(AppSpacing.sp5),
                 decoration: BoxDecoration(
-                  color: AppColors.white,
+                  color: AppColors.surface,
                   borderRadius: AppRadius.rLg,
                   boxShadow: AppColors.sh2,
                 ),
@@ -276,6 +280,34 @@ class _BattleScreenState extends ConsumerState<BattleScreen> {
 }
 
 /// Ұпай жолы: аты + ұпай бейджі.
+/// Комбо белгісі — қатарынан дұрыс жауап (🔥 ×N), әр өсуде секіреді.
+class _ComboBadge extends StatelessWidget {
+  const _ComboBadge({required this.streak});
+  final int streak;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding:
+          const EdgeInsets.symmetric(horizontal: AppSpacing.sp3, vertical: 2),
+      decoration: BoxDecoration(
+        gradient: AppColors.heroGold,
+        borderRadius: AppRadius.rFull,
+        boxShadow: AppColors.glow(AppColors.steppeGold, opacity: .4, blur: 8),
+      ),
+      child: Text(
+        '🔥 Комбо ×$streak',
+        style: AppTypography.caption.copyWith(
+          color: Colors.white,
+          fontWeight: FontWeight.w900,
+        ),
+      ),
+    )
+        .animate(key: ValueKey(streak))
+        .scaleXY(begin: 1.3, end: 1, duration: 280.ms, curve: Curves.easeOut);
+  }
+}
+
 class _ScoreRow extends StatelessWidget {
   const _ScoreRow({
     required this.name,
@@ -347,24 +379,24 @@ class _BattleAnswer extends StatelessWidget {
   Widget build(BuildContext context) {
     final (bg, border, fg) = switch (state) {
       _BattleAnswerState.idle => (
-          AppColors.white,
-          AppColors.cloudBorder,
-          AppColors.nightInk
+          AppColors.surface,
+          AppColors.border,
+          AppColors.ink
         ),
       _BattleAnswerState.correct => (
-          const Color(0xFFE0FAF2),
+          AppColors.tintJade,
           AppColors.successJade,
           AppColors.successJade
         ),
       _BattleAnswerState.wrong => (
-          const Color(0xFFFFEBEE),
+          AppColors.tintCoral,
           AppColors.dangerCoral,
           AppColors.dangerCoral
         ),
       _BattleAnswerState.disabled => (
-          AppColors.dawnBg,
-          AppColors.cloudBorder,
-          AppColors.mist
+          AppColors.bg,
+          AppColors.border,
+          AppColors.muted
         ),
     };
 

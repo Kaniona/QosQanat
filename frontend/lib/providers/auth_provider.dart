@@ -4,6 +4,7 @@ import '../core/utils/password_hash.dart';
 import '../core/utils/validators.dart';
 import '../models/enums.dart';
 import '../models/user.dart';
+import '../services/demo_seeder.dart';
 import '../services/local_storage_service.dart';
 import '../services/mock_data_service.dart';
 
@@ -165,6 +166,42 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
       return false;
     }
+  }
+
+  /// Презентация/көрме режимі: бір түрткімен дайын демо-аккаунтқа кіру
+  /// (телефон/құпиясөз теруді қажет етпейді). Аккаунт тұқымдалмаса — false.
+  Future<bool> loginAsDemo() async {
+    state = state.copyWith(status: AuthStatus.loading, clearError: true);
+    try {
+      var user = _storage.getUser(DemoSeeder.demoUserId);
+      if (user == null) {
+        // Сирек жағдай (тұқым жоғалса) — қайта тұқымдап көреміз.
+        await DemoSeeder.instance.reset();
+        user = _storage.getUser(DemoSeeder.demoUserId);
+      }
+      if (user == null) {
+        state = state.copyWith(
+          status: AuthStatus.error,
+          errorMessage: 'Демо аккаунт дайын емес',
+        );
+        return false;
+      }
+      await _storage.setCurrentUserId(user.id);
+      state = AuthState(status: AuthStatus.authenticated, user: user);
+      return true;
+    } catch (e) {
+      state = state.copyWith(
+        status: AuthStatus.error,
+        errorMessage: 'Демоға кіру қатесі: $e',
+      );
+      return false;
+    }
+  }
+
+  /// Демо прогресін қалпына келтіріп, ағымдағы күйді жаңарту (стенд reset).
+  Future<void> resetDemo() async {
+    await DemoSeeder.instance.reset();
+    refreshUser();
   }
 
   /// Серік таңдау (тіркелуден кейін) + 100 монета сыйлық.

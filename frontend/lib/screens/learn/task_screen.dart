@@ -5,16 +5,22 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/constants/app_strings.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_icons.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/utils/app_haptics.dart';
+import '../../core/utils/app_sounds.dart';
 import '../../data/curriculum.dart';
 import '../../models/enums.dart';
 import '../../models/task_node.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/mastery_provider.dart';
 import '../../providers/task_provider.dart';
 import '../../widgets/avatar/avatar_display.dart';
+import '../../widgets/game/answer_tile.dart';
 import '../../widgets/ui/reward_toast.dart';
+import '../../widgets/ui/speak_button.dart';
+import '../../widgets/ui/stat_label.dart';
 
 /// Викторина экраны: пулдан кездейсоқ ~12 сұрақ (жеңілден қиынға),
 /// 4 формат — таңдау / дұрыс-бұрыс / бос орын / сәйкестендіру,
@@ -40,6 +46,26 @@ class _TaskScreenState extends ConsumerState<TaskScreen> {
   bool _answered = false;
   bool _matchSucceeded = false;
   bool _finishing = false;
+  bool _recorded = false;
+
+  /// Әр сұраққа берілген жауап — бейімделу движогіне (mastery/SRS) азық.
+  final List<SessionAnswer> _answers = [];
+
+  void _logAnswer(bool correct) {
+    _answers.add((
+      questionId: _question.id,
+      nodeId: widget.nodeId,
+      correct: correct,
+      difficulty: _question.difficulty,
+    ));
+  }
+
+  /// Жинақталған жауаптарды бейімделу движогіне береді (бір рет қана).
+  Future<void> _flushAnswers() async {
+    if (_recorded || _answers.isEmpty) return;
+    _recorded = true;
+    await ref.read(masteryProvider.notifier).recordSession(_answers);
+  }
 
   Question get _question => _questions[_index];
   bool get _isMatch => _question.type == QuestionType.matchPairs;
@@ -49,9 +75,12 @@ class _TaskScreenState extends ConsumerState<TaskScreen> {
     final correct = option == _question.correctIndex;
     if (correct) {
       AppHaptics.select();
+      AppSounds.correct();
     } else {
       AppHaptics.heavy();
+      AppSounds.wrong();
     }
+    _logAnswer(correct);
     setState(() {
       _selected = option;
       _answered = true;
@@ -69,9 +98,12 @@ class _TaskScreenState extends ConsumerState<TaskScreen> {
     if (_answered || _finishing) return;
     if (success) {
       AppHaptics.select();
+      AppSounds.correct();
     } else {
       AppHaptics.heavy();
+      AppSounds.wrong();
     }
+    _logAnswer(success);
     setState(() {
       _answered = true;
       _matchSucceeded = success;
@@ -91,6 +123,8 @@ class _TaskScreenState extends ConsumerState<TaskScreen> {
     if (!mounted) return;
 
     if (_hearts <= 0) {
+      await _flushAnswers();
+      if (!mounted) return;
       RewardToast.show(
         context,
         message: AppStrings.heartsOut,
@@ -116,6 +150,7 @@ class _TaskScreenState extends ConsumerState<TaskScreen> {
   Future<void> _finish() async {
     if (_node == null) return;
     setState(() => _finishing = true);
+    await _flushAnswers();
     final result = await ref
         .read(taskProvider(_node.subject).notifier)
         .completeTask(
@@ -137,11 +172,17 @@ class _TaskScreenState extends ConsumerState<TaskScreen> {
         QuestionType.multipleChoice => AppStrings.typeChoice,
       };
 
-  (String, Color) get _difficultyBadge => switch (_question.difficulty) {
-        Difficulty.easy => (AppStrings.diffEasy, AppColors.successJade),
-        Difficulty.medium => (AppStrings.diffMedium, AppColors.steppeGoldDeep),
-        Difficulty.hard => (AppStrings.diffHard, AppColors.dangerCoral),
-      };
+  (String, Color) get _difficultyBadge => (
+        _question.difficulty.label,
+        switch (_question.difficulty) {
+          Difficulty.light => AppColors.successJade,
+          Difficulty.easy => AppColors.successJade,
+          Difficulty.medium => AppColors.steppeGoldDeep,
+          Difficulty.hard => AppColors.warningSunset,
+          Difficulty.complex => AppColors.dangerCoral,
+          Difficulty.brainTeaser => AppColors.cosmicPurple,
+        },
+      );
 
   @override
   Widget build(BuildContext context) {
@@ -173,6 +214,7 @@ class _TaskScreenState extends ConsumerState<TaskScreen> {
               Row(
                 children: [
                   IconButton(
+                    tooltip: AppStrings.a11yClose,
                     onPressed: () => context.pop(),
                     icon: const Icon(Icons.close_rounded, size: 26),
                   ),
@@ -183,7 +225,7 @@ class _TaskScreenState extends ConsumerState<TaskScreen> {
                         height: 10,
                         child: Stack(
                           children: [
-                            Container(color: AppColors.cloudBorder),
+                            Container(color: AppColors.border),
                             AnimatedFractionallySizedBox(
                               duration: const Duration(milliseconds: 350),
                               widthFactor: (_index + (_answered ? 1 : 0)) /
@@ -208,7 +250,7 @@ class _TaskScreenState extends ConsumerState<TaskScreen> {
                       size: 20,
                       color: i < _hearts
                           ? AppColors.dangerCoral
-                          : AppColors.mist,
+                          : AppColors.muted,
                     ),
                 ],
               ),
@@ -247,15 +289,28 @@ class _TaskScreenState extends ConsumerState<TaskScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(AppSpacing.sp5),
                 decoration: BoxDecoration(
-                  color: AppColors.white,
+                  color: AppColors.surface,
                   borderRadius: AppRadius.rLg,
                   boxShadow: AppColors.sh2,
                 ),
-                child: Text(
-                  _isMatch
-                      ? '${_question.text}\n${AppStrings.matchHint}'
-                      : _question.text,
-                  style: AppTypography.h3.copyWith(height: 1.4),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        _isMatch
+                            ? '${_question.text}\n${AppStrings.matchHint}'
+                            : _question.text,
+                        style: AppTypography.h3.copyWith(height: 1.4),
+                      ),
+                    ),
+                    // Дауыстап оқу (TTS қолжетімді болса ғана көрінеді).
+                    if (!_isMatch)
+                      Padding(
+                        padding: const EdgeInsets.only(left: AppSpacing.sp2),
+                        child: SpeakButton(text: _question.text),
+                      ),
+                  ],
                 ),
               ).animate(key: ValueKey('q$_index')).fadeIn().slideX(begin: .06),
               const SizedBox(height: AppSpacing.sp5),
@@ -277,7 +332,7 @@ class _TaskScreenState extends ConsumerState<TaskScreen> {
                             Padding(
                               padding: const EdgeInsets.only(
                                   bottom: AppSpacing.sp3),
-                              child: _AnswerButton(
+                              child: AnswerButton(
                                 key: ValueKey('a$_index$i'),
                                 text: _question.options[i],
                                 state: _answerState(i),
@@ -288,13 +343,11 @@ class _TaskScreenState extends ConsumerState<TaskScreen> {
                               _selected != _question.correctIndex)
                             Padding(
                               padding: const EdgeInsets.only(
-                                  top: AppSpacing.sp1),
-                              child: Text(
-                                '${AppStrings.wrongAnswer} ${_question.correctAnswer}'
-                                '${_question.hint != null ? '\n💡 ${_question.hint}' : ''}',
-                                style: AppTypography.bodySmall
-                                    .copyWith(color: AppColors.dangerCoral),
-                              ).animate().fadeIn(),
+                                  top: AppSpacing.sp3),
+                              child: ExplanationCard(
+                                correctAnswer: _question.correctAnswer,
+                                hint: _question.hint,
+                              ),
                             ),
                         ],
                       ),
@@ -315,10 +368,13 @@ class _TaskScreenState extends ConsumerState<TaskScreen> {
                       Positioned(
                         left: 90,
                         bottom: 50,
-                        child: Text(
-                          '+5 ⚡',
-                          style: AppTypography.h3
-                              .copyWith(color: AppColors.steppeGoldDeep),
+                        child: StatLabel(
+                          icon: AppIcons.xp,
+                          text: '+5',
+                          color: AppColors.steppeGoldDeep,
+                          iconSize: 20,
+                          gap: 4,
+                          style: AppTypography.h3,
                         )
                             .animate()
                             .moveY(begin: 0, end: -28, duration: 800.ms)
@@ -334,105 +390,11 @@ class _TaskScreenState extends ConsumerState<TaskScreen> {
     );
   }
 
-  _AnswerState _answerState(int i) {
-    if (!_answered) return _AnswerState.idle;
-    if (i == _question.correctIndex) return _AnswerState.correct;
-    if (i == _selected) return _AnswerState.wrong;
-    return _AnswerState.disabled;
-  }
-}
-
-enum _AnswerState { idle, correct, wrong, disabled }
-
-/// Claymorphic жауап батырмасы: дұрыс → жасыл check, қате → қызыл + шайқалу.
-class _AnswerButton extends StatelessWidget {
-  const _AnswerButton({
-    super.key,
-    required this.text,
-    required this.state,
-    required this.onTap,
-  });
-
-  final String text;
-  final _AnswerState state;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final (bg, border, fg) = switch (state) {
-      _AnswerState.idle => (
-          AppColors.white,
-          AppColors.cloudBorder,
-          AppColors.nightInk
-        ),
-      _AnswerState.correct => (
-          const Color(0xFFE0FAF2),
-          AppColors.successJade,
-          AppColors.successJade
-        ),
-      _AnswerState.wrong => (
-          const Color(0xFFFFEBEE),
-          AppColors.dangerCoral,
-          AppColors.dangerCoral
-        ),
-      _AnswerState.disabled => (
-          AppColors.dawnBg,
-          AppColors.cloudBorder,
-          AppColors.mist
-        ),
-    };
-
-    Widget button = GestureDetector(
-      onTap: state == _AnswerState.idle ? onTap : null,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sp4,
-          vertical: AppSpacing.sp4,
-        ),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: AppRadius.rMd,
-          border: Border.all(color: border, width: 2),
-          boxShadow: state == _AnswerState.idle ? AppColors.sh1 : null,
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: Text(
-                text,
-                style: AppTypography.body.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: fg,
-                ),
-              ),
-            ),
-            if (state == _AnswerState.correct)
-              const Icon(Icons.check_circle_rounded,
-                  color: AppColors.successJade, size: 24),
-            if (state == _AnswerState.wrong)
-              const Icon(Icons.cancel_rounded,
-                  color: AppColors.dangerCoral, size: 24),
-          ],
-        ),
-      ),
-    );
-
-    // Қате жауап: жұмсақ шайқалу.
-    if (state == _AnswerState.wrong) {
-      button = button
-          .animate()
-          .shakeX(hz: 5, amount: 4, duration: 450.ms);
-    }
-    if (state == _AnswerState.correct) {
-      button = button.animate().scaleXY(
-            begin: 1,
-            end: 1.02,
-            duration: 180.ms,
-            curve: Curves.easeOut,
-          );
-    }
-    return button;
+  AnswerState _answerState(int i) {
+    if (!_answered) return AnswerState.idle;
+    if (i == _question.correctIndex) return AnswerState.correct;
+    if (i == _selected) return AnswerState.wrong;
+    return AnswerState.disabled;
   }
 }
 
@@ -560,23 +522,23 @@ class _MatchCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final (bg, border, fg) = matched
         ? (
-            const Color(0xFFE0FAF2),
+            AppColors.tintJade,
             AppColors.successJade,
             AppColors.successJade
           )
         : flash
             ? (
-                const Color(0xFFFFEBEE),
+                AppColors.tintCoral,
                 AppColors.dangerCoral,
                 AppColors.dangerCoral
               )
             : selected
                 ? (
-                    AppColors.steppeGoldLight,
+                    AppColors.tintGold,
                     AppColors.steppeGold,
-                    AppColors.steppeGoldDeep
+                    AppColors.onTintGold
                   )
-                : (AppColors.white, AppColors.cloudBorder, AppColors.nightInk);
+                : (AppColors.surface, AppColors.border, AppColors.ink);
 
     Widget card = GestureDetector(
       onTap: matched ? null : onTap,

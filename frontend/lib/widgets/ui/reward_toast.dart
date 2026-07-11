@@ -28,7 +28,7 @@ abstract final class RewardToast {
               vertical: AppSpacing.sp3,
             ),
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: AppColors.surface,
               borderRadius: AppRadius.rMd,
               border: Border.all(color: color, width: 1.5),
               boxShadow: AppColors.sh3,

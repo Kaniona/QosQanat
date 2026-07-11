@@ -60,19 +60,42 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  gradient: AppColors.cosmicNight,
-                  borderRadius: BorderRadius.circular(36),
-                  border: Border.all(
-                    color: AppColors.steppeGold.withValues(alpha: .35),
-                  ),
-                  boxShadow: AppColors.goldGlow,
+              SizedBox(
+                width: 200,
+                height: 200,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Жұмсақ алтын аура — қараңғы фонда эмблема жарқырап тұрады.
+                    Container(
+                      width: 200,
+                      height: 200,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          colors: [
+                            AppColors.steppeGold.withValues(alpha: .20),
+                            AppColors.steppeGold.withValues(alpha: 0),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Container(
+                      width: 120,
+                      height: 120,
+                      decoration: BoxDecoration(
+                        gradient: AppColors.cosmicNight,
+                        borderRadius: BorderRadius.circular(36),
+                        border: Border.all(
+                          color: AppColors.steppeGold.withValues(alpha: .35),
+                        ),
+                        boxShadow: AppColors.goldGlow,
+                      ),
+                      padding: const EdgeInsets.all(AppSpacing.sp6),
+                      child: SvgPicture.asset('assets/brand/eagle_emblem.svg'),
+                    ),
+                  ],
                 ),
-                padding: const EdgeInsets.all(AppSpacing.sp6),
-                child: SvgPicture.asset('assets/brand/eagle_emblem.svg'),
               )
                   .animate()
                   .scale(
@@ -80,7 +103,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                     duration: 700.ms,
                     curve: Curves.elasticOut,
                   )
-                  .fadeIn(duration: 400.ms),
+                  .fadeIn(duration: 400.ms)
+                  .animate(onPlay: (c) => c.repeat(reverse: true))
+                  .scaleXY(
+                    begin: 1,
+                    end: 1.04,
+                    duration: 1600.ms,
+                    curve: Curves.easeInOut,
+                  ),
               const SizedBox(height: AppSpacing.sp6),
               Text(
                 AppStrings.appName,

@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../services/local_storage_service.dart';
 import 'auth_provider.dart';
+import 'weekly_goal_provider.dart' show bumpWeeklyRaw, weekKey;
 
 /// Геймификация күйі: деңгей, XP, монета, ақыл, streak.
 class GameState {
@@ -126,6 +127,16 @@ class GameNotifier extends StateNotifier<GameState> {
       pendingLevelUp: leveledUp ? newLevel : null,
     );
     await _persist();
+    // Апталық мақсатқа жинақтау (v2.1) — қатесі ойынды тоқтатпайды.
+    try {
+      final uid = _ref.read(authProvider).user?.id;
+      if (uid != null) {
+        final storage = _ref.read(storageProvider);
+        final wk = weekKey(DateTime.now());
+        await storage.setWeeklyXp(
+            uid, bumpWeeklyRaw(storage.getWeeklyXp(uid), wk, amount));
+      }
+    } catch (_) {}
   }
 
   Future<void> addCoins(int amount) async {

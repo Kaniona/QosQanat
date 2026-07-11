@@ -30,7 +30,7 @@ class AvatarSelector extends StatelessWidget {
             name: AppStrings.bekturName,
             description: AppStrings.bekturDesc,
             accent: AppColors.eagleBlue,
-            background: AppColors.eagleBlueLight,
+            background: AppColors.tintBlue,
             selected: selected == AssistantType.bektur,
             onTap: () => onSelect(AssistantType.bektur),
           ),
@@ -42,7 +42,7 @@ class AvatarSelector extends StatelessWidget {
             name: AppStrings.nazymName,
             description: AppStrings.nazymDesc,
             accent: AppColors.nazymRose,
-            background: AppColors.nazymRoseLight,
+            background: AppColors.tintRose,
             selected: selected == AssistantType.nazym,
             onTap: () => onSelect(AssistantType.nazym),
           ),
@@ -73,26 +73,26 @@ class _AssistantCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gradient = type == AssistantType.nazym
+        ? AppColors.heroRose
+        : AppColors.heroEagle;
+
     final card = GestureDetector(
       onTap: onTap,
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
         padding: const EdgeInsets.all(AppSpacing.sp4),
         decoration: BoxDecoration(
-          color: background,
-          borderRadius: AppRadius.rLg,
+          gradient: selected ? gradient : null,
+          color: selected ? null : background,
+          borderRadius: AppRadius.rXl,
           border: Border.all(
-            color: selected ? accent : Colors.transparent,
-            width: 2.5,
+            color: selected ? Colors.transparent : AppColors.border,
+            width: 2,
           ),
           boxShadow: selected
-              ? [
-                  BoxShadow(
-                    color: accent.withValues(alpha: .35),
-                    blurRadius: 18,
-                    offset: const Offset(0, 6),
-                  ),
-                ]
+              ? AppColors.glow(accent, opacity: .42, blur: 22, y: 8)
               : AppColors.sh1,
         ),
         child: Stack(
@@ -100,14 +100,32 @@ class _AssistantCard extends StatelessWidget {
           children: [
             Column(
               children: [
-                AvatarBase(assistant: type, size: 110),
+                Container(
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    color: selected
+                        ? AppColors.white.withValues(alpha: .2)
+                        : Colors.transparent,
+                    shape: BoxShape.circle,
+                  ),
+                  child: AvatarBase(assistant: type, size: 104),
+                ),
                 const SizedBox(height: AppSpacing.sp3),
-                Text(name, style: AppTypography.h3),
+                Text(
+                  name,
+                  style: AppTypography.h3.copyWith(
+                    color: selected ? AppColors.white : AppColors.ink,
+                  ),
+                ),
                 const SizedBox(height: AppSpacing.sp1),
                 Text(
                   description,
                   textAlign: TextAlign.center,
-                  style: AppTypography.caption,
+                  style: AppTypography.caption.copyWith(
+                    color: selected
+                        ? AppColors.white.withValues(alpha: .9)
+                        : AppColors.inkSoft,
+                  ),
                 ),
               ],
             ),
@@ -116,15 +134,14 @@ class _AssistantCard extends StatelessWidget {
                 top: -8,
                 right: -8,
                 child: Container(
-                  width: 28,
-                  height: 28,
-                  decoration: BoxDecoration(
-                    color: accent,
+                  width: 30,
+                  height: 30,
+                  decoration: const BoxDecoration(
+                    color: AppColors.white,
                     shape: BoxShape.circle,
                     boxShadow: AppColors.sh2,
                   ),
-                  child: const Icon(Icons.check_rounded,
-                      size: 18, color: AppColors.white),
+                  child: Icon(Icons.check_rounded, size: 18, color: accent),
                 ).animate().scale(
                       duration: 250.ms,
                       curve: Curves.elasticOut,

@@ -7,40 +7,59 @@ import 'app_spacing.dart';
 import 'app_typography.dart';
 
 /// Material 3 тақырыбы — «Eagle Wings» токендерінен құрастырылған.
+/// Жарық және қараңғы (dark mode) нұсқалары бір құрастырушыдан шығады.
 abstract final class AppTheme {
-  static ThemeData get light {
+  static ThemeData get light => _build(Brightness.light);
+  static ThemeData get dark => _build(Brightness.dark);
+
+  static ThemeData _build(Brightness brightness) {
+    final isDark = brightness == Brightness.dark;
+
+    // Бейтарап (режимге тәуелді) түстер — жаһандық күйді өзгертпей,
+    // ашық/қараңғы константалардан тікелей таңдаймыз.
+    final surface = isDark ? AppColors.surfaceDark : AppColors.white;
+    final bg = isDark ? AppColors.bgDark : AppColors.dawnBg;
+    final ink = isDark ? AppColors.inkDark : AppColors.nightInk;
+    final border = isDark ? AppColors.borderDark : AppColors.cloudBorder;
+    final muted = isDark ? AppColors.mutedDark : AppColors.mist;
+    final disabled = isDark ? AppColors.disabledDark : AppColors.disabledFill;
+
     final base = ThemeData(
       useMaterial3: true,
+      brightness: brightness,
       colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.eagleBlue,
+        brightness: brightness,
         primary: AppColors.eagleBlue,
         secondary: AppColors.steppeGold,
         tertiary: AppColors.cosmicPurple,
         error: AppColors.dangerCoral,
-        surface: AppColors.white,
+        surface: surface,
+        onSurface: ink,
       ),
-      scaffoldBackgroundColor: AppColors.dawnBg,
+      scaffoldBackgroundColor: bg,
     );
 
     return base.copyWith(
       textTheme: GoogleFonts.nunitoTextTheme(base.textTheme).apply(
-        bodyColor: AppColors.nightInk,
-        displayColor: AppColors.nightInk,
+        bodyColor: ink,
+        displayColor: ink,
       ),
       appBarTheme: AppBarTheme(
-        backgroundColor: AppColors.dawnBg,
-        foregroundColor: AppColors.nightInk,
+        backgroundColor: bg,
+        foregroundColor: ink,
         elevation: 0,
         centerTitle: true,
-        systemOverlayStyle: SystemUiOverlayStyle.dark,
-        titleTextStyle: AppTypography.h3,
+        systemOverlayStyle:
+            isDark ? SystemUiOverlayStyle.light : SystemUiOverlayStyle.dark,
+        titleTextStyle: AppTypography.h3.copyWith(color: ink),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
           minimumSize: const Size.fromHeight(AppSizes.buttonHeight),
           backgroundColor: AppColors.eagleBlue,
           foregroundColor: AppColors.white,
-          disabledBackgroundColor: AppColors.disabledFill,
+          disabledBackgroundColor: disabled,
           disabledForegroundColor: AppColors.white,
           elevation: 0,
           shape: RoundedRectangleBorder(borderRadius: AppRadius.rFull),
@@ -64,21 +83,19 @@ abstract final class AppTheme {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: AppColors.white,
-        hintStyle: AppTypography.body.copyWith(color: AppColors.mist),
+        fillColor: surface,
+        hintStyle: AppTypography.body.copyWith(color: muted),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.sp4,
           vertical: AppSpacing.sp4,
         ),
         border: OutlineInputBorder(
           borderRadius: AppRadius.rMd,
-          borderSide:
-              const BorderSide(color: AppColors.cloudBorder, width: 1.5),
+          borderSide: BorderSide(color: border, width: 1.5),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: AppRadius.rMd,
-          borderSide:
-              const BorderSide(color: AppColors.cloudBorder, width: 1.5),
+          borderSide: BorderSide(color: border, width: 1.5),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: AppRadius.rMd,
@@ -98,32 +115,32 @@ abstract final class AppTheme {
             AppTypography.caption.copyWith(color: AppColors.dangerCoral),
       ),
       cardTheme: CardThemeData(
-        color: AppColors.white,
+        color: surface,
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: AppRadius.rLg),
         margin: EdgeInsets.zero,
       ),
-      dividerTheme: const DividerThemeData(
-        color: AppColors.cloudBorder,
+      dividerTheme: DividerThemeData(
+        color: border,
         thickness: 1,
       ),
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: AppColors.nightInk,
-        contentTextStyle:
-            AppTypography.body.copyWith(color: AppColors.white),
+        backgroundColor: ink,
+        contentTextStyle: AppTypography.body.copyWith(color: surface),
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: AppRadius.rMd),
       ),
       dialogTheme: DialogThemeData(
-        backgroundColor: AppColors.white,
+        backgroundColor: surface,
         shape: RoundedRectangleBorder(borderRadius: AppRadius.rXl),
-        titleTextStyle: AppTypography.h2,
-        contentTextStyle: AppTypography.body,
+        titleTextStyle: AppTypography.h2.copyWith(color: ink),
+        contentTextStyle: AppTypography.body.copyWith(color: ink),
       ),
-      bottomSheetTheme: const BottomSheetThemeData(
-        backgroundColor: AppColors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
+      bottomSheetTheme: BottomSheetThemeData(
+        backgroundColor: surface,
+        shape: const RoundedRectangleBorder(
+          borderRadius:
+              BorderRadius.vertical(top: Radius.circular(AppRadius.xl)),
         ),
         showDragHandle: true,
       ),
@@ -131,17 +148,17 @@ abstract final class AppTheme {
         thumbColor: WidgetStateProperty.resolveWith(
           (states) => states.contains(WidgetState.selected)
               ? AppColors.white
-              : AppColors.mist,
+              : muted,
         ),
         trackColor: WidgetStateProperty.resolveWith(
           (states) => states.contains(WidgetState.selected)
               ? AppColors.eagleBlue
-              : AppColors.cloudBorder,
+              : border,
         ),
       ),
-      progressIndicatorTheme: const ProgressIndicatorThemeData(
+      progressIndicatorTheme: ProgressIndicatorThemeData(
         color: AppColors.eagleBlue,
-        linearTrackColor: AppColors.cloudBorder,
+        linearTrackColor: border,
       ),
     );
   }

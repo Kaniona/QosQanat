@@ -13,12 +13,78 @@ abstract final class AppStrings {
   static const error = 'Қате орын алды';
   static const copied = 'Көшірілді!';
 
+  // ---- Қолжетімділік (screen reader / tooltip) ----
+  static const a11yClose = 'Жабу';
+  static const a11yShowPassword = 'Құпиясөзді көрсету';
+  static const a11yHidePassword = 'Құпиясөзді жасыру';
+  static const a11yLevel = 'Деңгей';
+
   // ---- Қош келдің ----
   static const welcomeTitle = 'QosQanat-қа қош келдің!';
   static const welcomeSubtitle =
       'Серігіңмен бірге оқы. Даладан аспанға шарықта — бүркіт қанатымен.';
   static const startBtn = 'Бастау';
   static const haveAccount = 'Аккаунтым бар →';
+
+  // ---- Таныстыру / Презентация (көрме) ----
+  static const introCta = 'QosQanat дегеніміз не?';
+  static const introSkip = 'Өткізу';
+  static const introNext = 'Әрі қарай';
+  static const introDone = 'Бастайық!';
+  static const demoModeBtn = 'Презентация режимі';
+  static const demoModeHint = 'Дайын демо-аккаунтпен таныстыру';
+  static const demoResetTitle = 'Демо прогресін қалпына келтіру';
+  static const demoResetHint =
+      'Көрсетілім алдында демо-аккаунтты бастапқы күйге қайтарады';
+  static const demoResetDone = 'Демо қалпына келтірілді';
+
+  // Таныстыру слайдтары (4 слайд: мақсат → офлайн → бейімделу → геймификация).
+  static const intro1Title = 'Әр қазақ баласына — сапалы білім';
+  static const intro1Body =
+      '5–11 сыныпқа арналған геймификацияланған оқу. Қазақ тілінде әрі тегін.';
+  static const intro2Title = 'Интернетсіз де жұмыс істейді';
+  static const intro2Body =
+      'Барлық сабақ пен тапсырма телефонда сақталады. Ауыл мектебінде де — '
+      'үздіксіз оқу.';
+  static const intro3Title = '«QosQanat сені таниды»';
+  static const intro3Body =
+      'Әр жауабыңа қарай бейімделеді: әлсіз тұсыңды қайталатады, AI-серік '
+      'қатені түсіндіреді.';
+  static const intro4Title = 'Ойнап үйрен, шыңға шық';
+  static const intro4Body =
+      'Бүркіт картасымен саяхат: XP, лига, турнир. ҰБТ-ға дайындық та осында.';
+
+  // ---- Жоба туралы / Impact (қазылар мен қонақтарға) ----
+  static const aboutTitle = 'Жоба туралы';
+  static const aboutMission =
+      '«Даладан аспанға» — әр қазақстандық оқушыға сапалы әрі қызықты білім. '
+      'Қазақ тілінде, интернетсіз, тегін.';
+  static const aboutNumbersTitle = 'Платформа сандармен';
+  static const aboutStatSubjects = 'Пән';
+  static const aboutStatGrades = 'Сынып';
+  static const aboutStatTopics = 'Тақырып';
+  static const aboutStatLevels = 'Деңгей';
+  static const aboutStatQuestions = 'Жаттығу сұрағы';
+  static const aboutStatOffline = 'Офлайн';
+  static const aboutWhyTitle = 'Неге QosQanat?';
+  static const aboutWhy1Title = 'Толық офлайн';
+  static const aboutWhy1Body =
+      'Интернет тұрақсыз жерде де үздіксіз оқу — бәрі құрылғыда.';
+  static const aboutWhy2Title = 'Бейімделетін оқыту';
+  static const aboutWhy2Body =
+      'Шеберлік движогі мен интервалды қайталау — әркімге өз қарқыны.';
+  static const aboutWhy3Title = 'Қазақ айдентикасы';
+  static const aboutWhy3Body =
+      'Қазақ тілі, ұлттық ою-өрнек, бүркіт серік және аңыз тұлғалар.';
+  static const aboutWhy4Title = 'Ұстаз бен ата-анаға';
+  static const aboutWhy4Body =
+      'Прогресс панелі әлсіз тақырыптарды көрсетеді, тапсырма береді.';
+  static const aboutWhy5Title = 'ҰБТ мен ҚР бағдарламасы';
+  static const aboutWhy5Body =
+      'Мазмұн мектеп бағдарламасына сай, ҰБТ форматына бейімделген.';
+  static const aboutTech = 'Толық офлайн · деректер тек құрылғыда · Flutter';
+  static const aboutCta = 'Оқу картасын ашу';
+  static const curriculumBadge = 'ҚР мектеп бағдарламасына сай · ҰБТ-ға дайындық';
 
   // ---- Кіру ----
   static const loginTitle = 'Қайта қош келдің!';
@@ -67,7 +133,8 @@ abstract final class AppStrings {
 
   // ---- Құпиясөзді қалпына келтіру ----
   static const forgotTitle = 'Құпиясөзді қалпына келтіру';
-  static const forgotSubtitle = 'Телефон нөміріңді енгіз — растау кодын жібереміз.';
+  static const forgotSubtitle =
+      'Телефон нөміріңді енгіз — растау кодын жібереміз.';
   static const sendCode = 'Код жіберу';
   static const otpTitle = 'Растау коды';
   static const otpResend = 'Код келмеді ме? Қайта жіберу';
@@ -84,6 +151,30 @@ abstract final class AppStrings {
   static const nazymName = 'Назым';
   static const nazymDesc = 'Мейірімді · сабырлы';
   static const assistantPicked = 'Таңдадым';
+  // Серіктің өз даусымен сәлемдесуі (таңдағанда шығады).
+  static const bekturGreeting =
+      'Сәлем! Мен — Бектұр. Дайынсың ба? Шыңға бірге ұшамыз! 🦅';
+  static const nazymGreeting =
+      'Сәлем! Мен — Назым. Қорықпа, әр қадамда жаныңдамын 🌸';
+  // Серіктің мінез белгілері (чиптер).
+  static const bekturTrait1 = 'Жігерлі';
+  static const bekturTrait2 = 'Тәртіпті';
+  static const nazymTrait1 = 'Мейірімді';
+  static const nazymTrait2 = 'Шыдамды';
+
+  // ---- Серікпен чат ----
+  static const chatHint = 'Сұрағыңды жаз...';
+  static const chatTyping = 'жазып жатыр...';
+  static const chatOnline = 'желіде';
+  static String chatGreeting(String name) =>
+      'Сәлем, $name! 👋 Не туралы сұрағың бар? Кез келген пәннен көмектесемін.';
+  static const chatSuggest1 = 'Бөлшек дегеніміз не?';
+  static const chatSuggest2 = 'Бүгін нені оқысам?';
+  static const chatSuggest3 = 'Маған не қиын?';
+  static const chatSuggest4 = 'Мені жігерлендір';
+  static const chatError =
+      'Кешір, дәл қазір жауап бере алмадым. Қайталап көрші.';
+
   static const welcomeGiftTitle = 'Қош келдің сыйлығы!';
   static const welcomeGiftDesc = '100 монета саған сыйға!';
   static const enterApp = 'Қосымшаға кіру';
@@ -124,20 +215,260 @@ abstract final class AppStrings {
   static const subjectCS = 'Информатика';
   static const nodeStart = 'Бастау';
   static const nodeRepeat = 'Қайталау';
+  static const nodeLocked = 'Алдымен алдыңғы тапсырманы аяқта 🔒';
   static const mapDone = 'аяқталды';
   static const moduleWord = 'Модуль';
+
+  // ---- Оқу: саяхат бас панелі + пән карточкасы ----
+  static const learnJourneyTitle = 'Менің саяхатым';
+  static const learnOverall = 'Жалпы үлгерім';
+  static const learnLessonsWord = 'сабақ';
+  static const learnAllDone = 'Аяқталды';
+  static const learnPickPrompt = 'Әлемді таңда — саяхатты жалғастыр';
+
+  // ---- Басты бет: деңгей / XP ----
+  static const homeToNextLevel = 'келесі деңгейге';
+
+  // ---- Сабақ (теория) ----
+  static const lessonTitle = 'Сабақ';
+  static const lessonKeyIdea = 'НЕГІЗГІ ИДЕЯ';
+  static const lessonHook = 'ӨМІРДЕН';
+  static const lessonStepByStep = 'Қадам-қадаммен түсінейік';
+  static const lessonWhy = 'Неге солай?';
+  static const lessonExplain = 'ТҮСІНІКТЕМЕ';
+  static const lessonLetsLearn = 'Бұл тақырыпты бірге, оңай меңгерейік!';
+  static const lessonExamples = 'Үлгі есептер';
+  static const lessonShowSolution = 'Шешімін көру';
+  static const lessonNextStep = 'Келесі қадам';
+  static const lessonAnswer = 'Жауабы';
+  static const lessonTakeaway = 'ТІРЕК';
+  static const lessonStartPractice = 'Жаттығуды бастау';
+  static const lessonReview = 'Теорияны қайталау';
+  static const lessonCommonMistake = 'ЖИІ ҚАТЕЛІК';
+  static const lessonGuess = 'Болжа: жауабы қандай?';
+  static const lessonGuessRight = 'Дұрыс болжадың! Енді шешімін көрейік:';
+  static const lessonGuessWrong = 'Сенің болжамың:';
+  // ---- Байқау сынағы (емтихан режимі) ----
+  static const examTitle = 'Байқау сынағы';
+  static const examBannerSub = 'ҰБТ форматындағы жылдам тексеріс: барлық '
+      'тақырыптан, таймермен';
+  static const examPickSubject = 'Қай пәннен тапсырасың?';
+  static const examRule1 = 'Сыныбыңның барлық тақырыбынан, жеңілден қиынға';
+  static const examRule2 = 'Жауаптан кейін түзету жоқ — нағыз емтихандағыдай';
+  static const examRule3 = 'Соңында тақырып бойынша талдау мен кеңес аласың';
+  static const examQuestions = 'сұрақ';
+  static const examMinutes = 'минут';
+  static const examStart = 'Сынақты бастау';
+  static const examBest = 'Үздік нәтиже';
+  static const examHistory = 'Алдыңғы сынақтар';
+  static const examTimeLabel = 'Уақыт';
+  static const examExitTitle = 'Сынақтан шығасың ба?';
+  static const examExitBody = 'Бұл сынақтың нәтижесі сақталмайды.';
+  static const examExitStay = 'Жалғастыру';
+  static const examExitLeave = 'Шығу';
+  static const examResultTitle = 'Сынақ нәтижесі';
+  static const examCorrectOf = 'дұрыс жауап';
+  static const examPerTopic = 'Тақырып бойынша талдау';
+  static const examWeak = 'Күшейту керек тақырыптар';
+  static const examReviewTopic = 'Теорияны қайталау';
+  static const examRetry = 'Қайта тапсыру';
+  static const examDone = 'Дайын';
+  static const examGreatJob = 'Керемет дайындық!';
+  static const examGoodJob = 'Жақсы нәтиже — алға!';
+  static const examKeepGoing = 'Талдауды қара да, қайта тапсыр!';
+
+  // ---- ҰБТ дайындығы (10–11 сынып) ----
+  static const ubtTitle = 'ҰБТ дайындығы';
+  static const ubtBannerSub = '10–11 сынып · 5 пән · толық байқау сынағы';
+  static const ubtIntroTitle = 'Толық ҰБТ форматы';
+  static const ubtMandatory = 'Міндетті блок';
+  static const ubtMandatoryDesc =
+      'Қазақстан тарихы · Математикалық сауаттылық · Оқу сауаттылығы';
+  static const ubtPickProfile = 'Профильді 2 пәнді таңда';
+  static const ubtPickedCount = 'таңдалды';
+  static const ubtRule1 = 'Сұрақтар пәннің 2 сыныбын (өткен + ағымдағы) қамтиды';
+  static const ubtRule2 = 'Блок-блокпен: міндетті 3 пән, сосын 2 профиль пәні';
+  static const ubtRule3 = 'Соңында әр пән мен әлсіз тақырып бойынша талдау';
+  static const ubtStart = 'ҰБТ сынағын бастау';
+  static const ubtPerSubject = 'Пән бойынша талдау';
+  static const ubtWeakTopics = 'Күшейту керек тақырыптар';
+  static const ubtHistory = 'Алдыңғы ҰБТ сынақтары';
+  static const ubtOnlySenior = 'ҰБТ бөлімі 10–11 сынып оқушыларына арналған';
+  static const ubtReadiness = 'Дайындық индексі';
+  static const ubtReadinessHint = 'Соңғы сынақтар негізінде (жаңасы салмақтырақ)';
+
+  // ---- Формулалар анықтамалығы (v2) ----
+  static const refTitle = 'Формулалар анықтамалығы';
+  static const refSearchHint = 'Формула не тақырып ізде…';
+  static const refAll = 'Барлығы';
+  static const refOpenLesson = 'Толық теорияға өту';
+  static const refEmpty = 'Ештеңе табылмады — басқаша іздеп көр';
+  static const refGradeShort = 'сынып';
+
+  // ---- Күнделікті марафон (v2) ----
+  static const dailyTitle = 'Күнделікті марафон';
+  static const dailySub = 'Күніне бір рет · аралас 10 сұрақ · бонус XP';
+  static const dailyDoneToday = 'Бүгінгі марафон орындалды!';
+  static const dailyYourScore = 'Бүгінгі нәтижең';
+  static const dailyStart = 'Марафонды бастау';
+  static const dailyCome = 'Ертең жаңа марафон күтеді';
+  static const dailyPerfect = 'Мінсіз! Барлығы дұрыс!';
+  static const dailyResultTitle = 'Марафон нәтижесі';
+
+  // ---- Апталық мақсат (v2.1) ----
+  static const weeklyGoalTitle = 'Апталық мақсат';
+  static const weeklyGoalSet = 'Мақсат қою';
+  static const weeklyGoalPick = 'Апталық XP мақсатыңды таңда';
+  static const weeklyGoalDone = 'Мақсат орындалды!';
+  static const weeklyGoalEasy = 'Жеңіл';
+  static const weeklyGoalNormal = 'Қалыпты';
+  static const weeklyGoalHero = 'Қаһарман';
+
+  // ---- Не жаңалық (v2.1) ----
+  static const whatsNewTitle = 'Не жаңалық — 2.1';
+  static const whatsNewBody =
+      '• Формулалар анықтамалығы — барлық формула бір жерде\n'
+      '• Күнделікті марафон — күн сайын бонус XP\n'
+      '• ҰБТ дайындығы: дайындық индексі мен жаңа жетістіктер\n'
+      '• Апталық мақсат — өз қарқыныңды өзің таңда';
+  static const whatsNewDismiss = 'Түсінікті';
+
+  static const moduleComplete = 'Толық аяқталды';
+  static const mapContinue = 'Жалғастыру';
+  static const mapStartHere = 'Осы жерден баста';
+  static const mapLocate = 'Орныма оралу';
+  static const mapNext = 'Келесі қадам';
+
+  // ---- Оқу картасы: шолу (overview) + белгілер (legend) ----
+  static const mapOverviewTitle = 'Саяхат картасы';
+  static const mapOverviewHint = 'Сыныпты таңдап, сол жерге секір';
+  static const mapLegendTitle = 'Белгілер';
+  static const mapGradeSuffix = '-сынып';
+  static const mapModulesWord = 'модуль';
+  static const mapNodesWord = 'түйін';
+  static const mapJourneyStats = 'Жалпы жол';
+  static const mapStatDone = 'Аяқталды';
+  static const mapStatStars = 'Жұлдыздар';
+  static const mapStatMastered = 'Меңгерілді';
+  static const mapStatQuestions = 'Сұрақтар';
+  static const mapStatXp = 'Жалпы XP';
+  static const mapGoHere = 'Осында өту';
+  static const mapModuleLocked = 'Әлі жабық';
+  static const mapEstMinutes = 'мин';
+  static const mapInThisNode = 'Бұл түйінде';
+  static const mapDifficultyMix = 'Қиындық таралымы';
+  static const mapModuleProgress = 'Модуль бойынша';
+
+  // Түйін түрлерінің анықтамасы (legend).
+  static const legendTypesTitle = 'Түйін түрлері';
+  static const legendStatesTitle = 'Күйлері';
+  static const legendPathTitle = 'Жол';
+  static const legendLesson = 'Сабақ — алдымен теория, сосын жаттығу';
+  static const legendQuiz = 'Викторина — жылдам білім сынағы';
+  static const legendBoss = 'Босс — модульдің қорытынды сынағы';
+  static const legendTreasure = 'Қазына — қосымша сыйлық раунды';
+  static const legendLocked = 'Жабық — алдыңғы түйінді аяқта';
+  static const legendCurrent = 'Ағымдағы — дәл осыдан баста';
+  static const legendDone = 'Аяқталған — қайталауға болады';
+  static const legendMastered = 'Меңгерілген — толық игерілді';
+  static const legendPathDone = 'Өтілген жол';
+  static const legendPathNext = 'Алдағы жол';
+
+  // Карта: бос күй, streak, сабақ алдыңғы көрінісі.
+  static const mapEmptyTitle = 'Әзірге материал жоқ';
+  static const mapEmptySubtitle =
+      'Бұл пән бойынша тапсырмалар жақында қосылады';
+  static const mapStreakTooltip = 'Қатарынан оқыған күндер';
+  static const mapWillLearn = 'Бұл сабақта үйренесің';
+  static const mapExamplesCount = 'үлгі есеп';
+  static const mapFormula = 'Негізгі ереже';
   static const gradeMaterial = '-сынып материалы';
   static const questionWord = 'сұрақ';
   static const bestResult = 'Үздік нәтиже';
+
+  // Карта: келесі сынып тизері (жолдың ең жоғарысындағы жабық қақпа).
+  static const mapAheadChip = 'АЛДА';
+  static const mapNextGradeHint = 'Алдымен өз сыныбыңды бағындыр!';
+
+  // ---- Бейімделу / коуч / қайталау ----
+  static const coachTitle = 'Жеке коуч';
+  static const coachWeakLead = 'Әлсіз тұсың';
+  static const coachReviewReady = 'қайталауға дайын';
+  static const coachReviewCta = 'Қайталау';
+  static const coachAllGood = 'Жарайсың! Әзірге қайталайтын сұрақ жоқ.';
+  static const coachAllGoodSub = 'Жаңа тақырыпты жалғастыра бер 🦅';
+  static const coachStartLearning =
+      'Оқуды бастасаң, коуч әлсіз тұсыңды табады.';
+  static const reviewTitle = 'Қайталау сессиясы';
+  static const reviewIntro = 'Бұрын қателескен сұрақтарыңды бекітеміз.';
+  static const reviewEmpty = 'Қайталайтын сұрақ жоқ — бәрі бекіді! ✅';
+  static const reviewDone = 'Қайталау бітті';
+  static const reviewQuestionsLeft = 'сұрақ қалды';
+  static const masteryFresh = 'Жаңа';
+  static const masteryLearning = 'Үйренуде';
+  static const masteryProven = 'Бекіді';
+  static const masteryMastered = 'Шебер';
+
+  // ---- Менің прогресім (оқушыға) ----
+  static const progressTitle = 'Менің прогресім';
+  static const progressMenu = 'Прогресім';
+  static const progressOverall = 'Жалпы дәлдік';
+  static const progressMasteredTopics = 'Меңгерген тақырып';
+  static const progressEmpty =
+      'Әзірге деректер жоқ. Жаттыға бастасаң, мұнда мықты әрі әлсіз тұстарың '
+      'көрінеді 🦅';
+  static const progressSubjectsTitle = 'Пәндер бойынша шеберлік';
+
+  // ---- Орналастыру диагностикасы ----
+  static const placementTitle = 'Деңгейіңді анықтайық';
+  static const placementIntro =
+      'Бірнеше сұраққа жауап бер — мен сенің мықты әрі әлсіз тұстарыңды танып, '
+      'саған жеке оқу жоспарын құрамын. Бұл тест емес, танысу 🦅';
+  static const placementStart = 'Бастау';
+  static const placementSkip = 'Кейінірек';
+  static const placementDoneTitle = 'Тамаша, таныстық!';
+  static const placementDoneSub =
+      'Сені таныдым. Енді басты беттен жеке жоспарыңды көр — әлсіз тұсыңнан '
+      'бастаймыз.';
+
+  // ---- Бүгінгі жоспар ----
+  static const dailyPlanTitle = 'Бүгінгі жоспар';
+  static const dailyPlanReview = 'Қателескен сұрақтарды қайтала';
+  static const dailyPlanWeak = 'Әлсіз тақырыпты бекіт';
+  static const dailyPlanNew = 'Жаңа тақырып үйрен';
+  static const dailyPlanGoal = 'Бүгін 10 сұраққа жауап бер';
+  static const dailyPlanDone = 'Бүгінгі жоспар орындалды! 🎉';
+  static const dailyPlanDoneSub = 'Жарайсың! Ертең жаңа мақсат күтеді.';
+  static const dailyPlanProgress = 'орындалды';
+
+  // ---- Ұстаз / ата-ана панелі ----
+  static const guardianTitle = 'Ұстаз / Ата-ана';
+  static const guardianMenu = 'Ұстаз панелі';
+  static const guardianPinPrompt = 'PIN кодын енгізіңіз';
+  static const guardianPinNew = 'Жаңа PIN орнатыңыз (4 сан)';
+  static const guardianPinWrong = 'PIN қате';
+  static const guardianRoster = 'Оқушылар';
+  static const guardianWeakTopics = 'Әлсіз тақырыптар';
+  static const guardianStrong = 'Мықты тақырыптар';
+  static const guardianNoData = 'Деректер әлі жоқ — оқушы жаттыға бастасын.';
+  static const guardianAccuracy = 'Орташа дәлдік';
+  static const guardianActivity = 'Соңғы белсенділік';
+  static const guardianAssign = 'Тапсырма беру';
+  static const guardianAssigned = 'Тапсырма берілді';
+  static const guardianShareReport = 'Есепті бөлісу';
+  static const assignmentBadge = 'Ұстаз тапсырмасы';
 
   // ---- Тапсырма ----
   static const questionCounter = 'Сұрақ';
   static const correctAnswer = 'Дұрыс! 🎉';
   static const wrongAnswer = 'Қате. Дұрыс жауап:';
+  static const answerCorrectLabel = 'Дұрыс жауап';
+  static const explanationLabel = 'Түсіндірме';
   static const taskComplete = 'Тапсырма аяқталды!';
   static const nextUnlocked = 'Жаңа биік бағындырылды! 🦅';
   static const matchTitle = 'Жұптарды сәйкестендір';
-  static const matchHint = 'Сол жақтан карточканы, сосын оң жақтан сыңарын таңда';
+  static const matchHint =
+      'Сол жақтан карточканы, сосын оң жақтан сыңарын таңда';
   static const typeChoice = 'Дұрыс жауапты таңда';
   static const typeTrueFalse = 'Дұрыс / Бұрыс';
   static const typeFillBlank = 'Бос орынды толтыр';
@@ -245,8 +576,17 @@ abstract final class AppStrings {
   static const tournamentTitle = 'Турнир';
   static const tournamentPrize = 'Жүлде қоры';
   static const tournamentJoin = 'Қатысу';
-  static const tournamentJoined = 'Қатысып жатырсың ✓';
+  static const tournamentJoined = 'Қатыстың ✓';
   static const tournamentEnds = 'Аяқталуына';
+  static const tournamentPlay = 'Жарысқа кіру';
+  static const tournamentReplay = 'Қайта жарысу';
+  static const tournamentPlayTitle = 'Турнир жарысы';
+  static const tournamentLeaderboard = 'Турнир кестесі';
+  static const tournamentYourRank = 'Сенің орның';
+  static const tournamentRankShort = 'орын';
+  static const tournamentPrizeWon = 'Жеңіп алдың';
+  static const tournamentRound = 'Раунд сұрақтары';
+  static const score = 'Нәтиже';
 
   // ---- Квесттер ----
   static const dailyQuests = 'Күнделікті тапсырмалар';
@@ -266,6 +606,8 @@ abstract final class AppStrings {
   static const profileUpdated = 'Профиль жаңартылды ✓';
   static const rusComingSoon = 'Орыс тілі — жақында!';
   static const tournamentEmpty = 'Әзірге белсенді турнир жоқ';
+  static const tournamentEmptySub =
+      'Жаңа турнирлер жақын арада ашылады. Жаттығуды жалғастыр — дайын бол!';
   static const participants = 'Қатысушы';
   static const daysShort = 'күн';
 

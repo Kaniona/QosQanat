@@ -4,10 +4,22 @@ import '../models/enums.dart';
 import '../models/task_node.dart';
 import 'banks/bank_types.dart';
 import 'banks/cs_bank.dart';
+import 'banks/cs_bank2.dart';
 import 'banks/english_bank.dart';
+import 'banks/english_gen.dart';
 import 'banks/kazakh_bank.dart';
+import 'banks/kazakh_gen.dart';
 import 'banks/math_bank.dart';
+import 'banks/math_bank_advanced.dart';
+import 'banks/math_bank_advanced2.dart';
+import 'banks/math_bank_extra.dart';
+import 'banks/math_bank_hard.dart';
+import 'banks/math_bank_redbook.dart';
 import 'banks/physics_bank.dart';
+import 'banks/biology_bank.dart';
+import 'banks/chemistry_bank.dart';
+import 'banks/history_bank.dart';
+import 'banks/history_bank2.dart';
 
 /// Банк жазбасы: (мәтін, нұсқалар, дұрыс индекс, түсіндірме, қиындық).
 typedef _Q = BankQ;
@@ -16,28 +28,84 @@ typedef _Q = BankQ;
 typedef _P = BankP;
 
 /// Толық оқу бағдарламасы: 5 пән × 11 сынып × 2 модуль × 16 node.
-/// Әр node-та 42 сұрақтық пул (25 easy / 12 medium / 5 hard),
+/// Әр node-та 56 сұрақтық пул (6 деңгейлі тиер),
 /// 4 формат: таңдау, дұрыс/бұрыс, бос орын, сәйкестендіру.
 /// Сессияда пулдан кездейсоқ ~12 сұрақ іріктеледі — қайталау жаттанды
 /// болмауы үшін. Барлығы offline, кодта сақталады.
 abstract final class Curriculum {
   static const int modulesPerGrade = 2;
-  static const int nodesPerModule = 16;
+  static const int nodesPerModule = 160; // 16 × 10
 
-  /// Бір node-тағы сұрақ пулының көлемі.
-  static const int questionPoolSize = 42;
+  /// Математика тапсырмалары ГЕНЕРАТОРМЕН емес, нақты ТЕКСЕРІЛГЕН банк
+  /// тақырыптарынан disjoint (қайталанбайтын) тілімделеді — дұрыс жауап
+  /// есептелуі шарт болғандықтан. Банк тілімі шектеулі: сынып тақырыбы 6 node-қа
+  /// бөлінеді (5–11), 1–4 сыныпта 2 node. Оны 5 есе созу бос тапсырма тудырар
+  /// еді (сұрақ жетпейді), сондықтан математика толық сапалы деңгейде қалады.
+  /// Өзге пәндер генератормен 80 node-ты (56 сұрақтық пул) толтыра алады.
+  static const int mathNodesSenior = 6;
+  static const int mathNodesJunior = 2;
+  static int mathNodesFor(int grade) =>
+      grade >= 5 ? mathNodesSenior : mathNodesJunior;
 
-  /// Бір сессияда көрсетілетін сұрақ саны.
+  /// Пән/сыныпқа қарай бір модульдегі node саны. Математикада тақырыптық банк
+  /// disjoint тілімделетіндіктен аз (mathNodesFor) — көбейту бос node тудырар
+  /// еді. Өзге пәндер (тарих қоса) генератор/56-пул жүйесінде — [nodesPerModule].
+  static int nodesPerModuleFor(String subject, int grade) =>
+      subject == 'math' ? mathNodesFor(grade) : nodesPerModule;
+
+  /// Бір node-тағы сұрақ пулының (генератор пәндері) көлемі.
+  static const int questionPoolSize = 56;
+
+  /// Бір сессияда көрсетілетін сұрақтың ЕҢ КӨП саны (нақты саны node пулынан
+  /// аспайды — математикада тілім ~4–8 сұрақ).
   static const int sessionSize = 12;
   static const int treasureSessionSize = 5;
 
-  /// 16 node-тың түр өрнегі (соңғысы — босс).
+  /// 80 node-тың түр өрнегі (5 × 16, соңғысы — босс).
   static const List<NodeType> _pattern = [
     NodeType.lesson, NodeType.lesson, NodeType.quiz, NodeType.lesson,
     NodeType.treasure, NodeType.lesson, NodeType.quiz, NodeType.lesson,
     NodeType.lesson, NodeType.quiz, NodeType.lesson, NodeType.treasure,
     NodeType.lesson, NodeType.quiz, NodeType.lesson, NodeType.boss,
+    // 2-ші итерация (16)
+    NodeType.lesson, NodeType.lesson, NodeType.quiz, NodeType.lesson,
+    NodeType.treasure, NodeType.lesson, NodeType.quiz, NodeType.lesson,
+    NodeType.lesson, NodeType.quiz, NodeType.lesson, NodeType.treasure,
+    NodeType.lesson, NodeType.quiz, NodeType.lesson, NodeType.boss,
+    // 3-ші итерация (16)
+    NodeType.lesson, NodeType.lesson, NodeType.quiz, NodeType.lesson,
+    NodeType.treasure, NodeType.lesson, NodeType.quiz, NodeType.lesson,
+    NodeType.lesson, NodeType.quiz, NodeType.lesson, NodeType.treasure,
+    NodeType.lesson, NodeType.quiz, NodeType.lesson, NodeType.boss,
+    // 4-ші итерация (16)
+    NodeType.lesson, NodeType.lesson, NodeType.quiz, NodeType.lesson,
+    NodeType.treasure, NodeType.lesson, NodeType.quiz, NodeType.lesson,
+    NodeType.lesson, NodeType.quiz, NodeType.lesson, NodeType.treasure,
+    NodeType.lesson, NodeType.quiz, NodeType.lesson, NodeType.boss,
+    // 5-ші итерация (16)
+    NodeType.lesson, NodeType.lesson, NodeType.quiz, NodeType.lesson,
+    NodeType.treasure, NodeType.lesson, NodeType.quiz, NodeType.lesson,
+    NodeType.lesson, NodeType.quiz, NodeType.lesson, NodeType.treasure,
+    NodeType.lesson, NodeType.quiz, NodeType.lesson, NodeType.boss,
   ];
+
+  /// Математика 1–4 сынып өрнегі (2 node): сабақ → босс.
+  static const List<NodeType> _mathPatternJunior = [
+    NodeType.lesson, NodeType.boss,
+  ];
+
+  /// Математика 5–11 сынып өрнегі (6 node): әр тақырып — қиындық бойынша өсетін
+  /// саяхат (жеңіл тілім → қиын тілім). n0 — теория сабағы, соңы — босс.
+  /// Тек n0 сабақ (теория қажет); қалғаны тақырыптың сұрақ тілімдері.
+  static const List<NodeType> _mathPatternSenior = [
+    NodeType.lesson, NodeType.quiz, NodeType.quiz,
+    NodeType.treasure, NodeType.quiz, NodeType.boss,
+  ];
+
+  static List<NodeType> _patternFor(String subject, int grade) =>
+      subject == 'math'
+          ? (grade >= 5 ? _mathPatternSenior : _mathPatternJunior)
+          : _pattern;
 
   /// Кэш кілті — «пән:сынып». Тек қажет сынып қана құрастырылады.
   static final Map<String, List<TaskNode>> _gradeCache = {};
@@ -48,6 +116,11 @@ abstract final class Curriculum {
         '$subject:$grade',
         () => _buildGrade(subject, grade),
       );
+
+  /// Берілген пән/сыныптағы тақырып (модуль) саны. Математикада сыныбына
+  /// қарай әртүрлі (толық таксономия), қалғанда — [modulesPerGrade].
+  static int moduleCount(String subject, int grade) =>
+      _moduleCountFor(subject, grade);
 
   /// 1-сыныптан берілген сыныпқа ДЕЙІН (қоса) барлық node — оқушыға
   /// өз сыныбы мен одан төменгілері ашық, жоғарғылары мүлде көрінбейді.
@@ -80,15 +153,20 @@ abstract final class Curriculum {
         d: node.questions.where((q) => q.difficulty == d).toList()
           ..shuffle(random),
     };
-    final nEasy = (target * .6).round();
-    final nMedium = (target * .3).round();
-    final nHard = max(target - nEasy - nMedium, 0);
-
-    final picked = <Question>[
-      ...byDiff[Difficulty.easy]!.take(nEasy),
-      ...byDiff[Difficulty.medium]!.take(nMedium),
-      ...byDiff[Difficulty.hard]!.take(nHard),
-    ];
+    // 6 деңгейге шамамен тең үлес — жеңілден басқатырғышқа дейінгі өрлемелі
+    // қисық (target=12 → әр деңгейден 2). Қалдық орта деңгейлерге қосылады.
+    final levels = Difficulty.values;
+    final per = target ~/ levels.length;
+    var extra = target - per * levels.length;
+    final picked = <Question>[];
+    for (final d in levels) {
+      var n = per;
+      if (extra > 0 && d != Difficulty.light && d != Difficulty.brainTeaser) {
+        n++;
+        extra--;
+      }
+      picked.addAll(byDiff[d]!.take(n));
+    }
     // Топ жетіспей қалса — қалған пулдан толтырамыз.
     if (picked.length < target) {
       final rest = node.questions.where((q) => !picked.contains(q)).toList()
@@ -114,7 +192,10 @@ abstract final class Curriculum {
     final g = grade.clamp(1, 11);
     final random = Random(seed);
     final subjects = subject == 'all'
-        ? const ['math', 'kazakh', 'english', 'physics', 'cs']
+        ? const [
+            'math', 'kazakh', 'english', 'physics', 'cs', 'biology',
+            'chemistry', 'history'
+          ]
         : [subject];
     final grades = g > 1 ? [g - 1, g] : [g];
     final pool = <Question>[];
@@ -137,7 +218,7 @@ abstract final class Curriculum {
           'battle_math_$i',
           g,
           random,
-          Difficulty.values[random.nextInt(3)],
+          Difficulty.values[random.nextInt(Difficulty.values.length)],
         ));
       }
     }
@@ -158,10 +239,18 @@ abstract final class Curriculum {
 
   static List<TaskNode> _buildGrade(String subject, int grade) {
     final nodes = <TaskNode>[];
-    for (var module = 1; module <= modulesPerGrade; module++) {
+    // Модуль саны — сол пән/сыныптың тақырып атаулары тізімінің ұзындығы
+    // (математикада 5–11 сыныпта 3: 2 алгебра/арифметика + 1 геометрия),
+    // әйтпесе әдепкі [modulesPerGrade].
+    final moduleCount = _moduleCountFor(subject, grade);
+    final nodeCount = nodesPerModuleFor(subject, grade);
+    final pattern = _patternFor(subject, grade);
+    for (var module = 1; module <= moduleCount; module++) {
       final moduleTitle = _moduleTitle(subject, grade, module);
-      for (var i = 0; i < nodesPerModule; i++) {
-        final type = _pattern[i];
+      for (var i = 0; i < nodeCount; i++) {
+        // Node саны өрнек ұзындығынан асса, өрнек циклдік қайталанады
+        // (RangeError болмайды) — тапсырма санын еркін көбейтуге мүмкіндік береді.
+        final type = pattern[i % pattern.length];
         final id = '${subject}_g${grade}_m${module}_n$i';
         nodes.add(TaskNode(
           id: id,
@@ -241,73 +330,143 @@ abstract final class Curriculum {
 
   // ---------------- Сұрақ пулын құрастыру ----------------
 
-  /// 42 сұрақтық пул: 25 easy + 12 medium + 5 hard.
+  /// 56 сұрақтық пул: 6 деңгейлі тиер (light 14 / easy 8 / medium 8 /
+  /// hard 7 / complex 11 / brainTeaser 8).
   /// Форматтар: банк MCQ/бос орын + туынды дұрыс/бұрыс + сәйкестендіру.
   static List<Question> _buildPool(String subject, int grade, String nodeId) {
     final random = Random(nodeId.hashCode);
+    // Генераторы бар пәндер — мыңдаған бірегей, деңгейлі сұрақ:
+    // math/physics/cs жоғарғы тиерлерге (light/complex/brainTeaser) генератор,
+    // ал бар банк/тақырып сұрақтары орта тиерлерге.
     if (subject == 'math') return _mathPool(nodeId, grade, random);
+    if (subject == 'physics') {
+      return _subjectPool('physics', grade, nodeId, random, _physicsQuestion);
+    }
+    if (subject == 'cs') {
+      return _subjectPool('cs', grade, nodeId, random, _csQuestion);
+    }
+    if (subject == 'biology') {
+      return _subjectPool('biology', grade, nodeId, random, null);
+    }
+    if (subject == 'chemistry') {
+      return _subjectPool('chemistry', grade, nodeId, random, null);
+    }
+    if (subject == 'history') {
+      return _subjectPool('history', grade, nodeId, random, null);
+    }
+    // Тіл пәндері (5–11) — енді ТЕКСЕРІЛГЕН генератормен (light/complex/
+    // brainTeaser тиерлерін толтырады; орта тиерлер тақырып банкінен).
+    // Қайталануды жояды. 1–4 сынып бұрынғыша банктен (генератор грамматикасы
+    // кіші сыныпқа сай емес).
+    if (subject == 'kazakh') {
+      return _subjectPool(
+          'kazakh', grade, nodeId, random, grade >= 5 ? kazakhGenQuestion : null);
+    }
+    if (subject == 'english') {
+      return _subjectPool('english', grade, nodeId, random,
+          grade >= 5 ? englishGenQuestion : null);
+    }
+    return _subjectPool(subject, grade, nodeId, random, null);
+  }
 
-    final bank = _bankFor(subject, grade);
+  /// Жалпы 6-тиер пул (56 = light 14 / easy 8 / medium 8 / hard 7 / complex 11 /
+  /// brainTeaser 8). Орта тиерлер — банктен (жетпесе Дұрыс/Бұрыс), medium-де
+  /// 2 сәйкестендіру + 2 кепілді TF. [gen] берілсе — light/complex/brainTeaser
+  /// тиерлері генератордан (физика/информатика: шынайы қиын, мыңдаған).
+  static List<Question> _subjectPool(
+    String subject,
+    int grade,
+    String nodeId,
+    Random random,
+    Question Function(String id, int grade, Random r, Difficulty d)? gen,
+  ) {
+    // Тақырып тазалығы: node өз МОДУЛІНІҢ тақырыбына сай банк сұрақтарын алады
+    // (мыс. «Абай» модулінде есімдік сұрақтары шықпайды). Қиындық тиерлерінің
+    // саны мен генератор/толтыру өзгермейді — тек банк дереккөзі модульге сай.
+    final module = int.tryParse(
+            RegExp(r'_m(\d+)_').firstMatch(nodeId)?.group(1) ?? '') ??
+        1;
+    final bank = _bankForModule(subject, grade, module);
     final pairBand = grade <= 4 ? 1 : (grade <= 7 ? 5 : 9);
     final pairs = _pairBanks[subject]?[pairBand] ?? const <_P>[];
 
-    final easy = bank.where((q) => q.difficulty == Difficulty.easy).toList()
-      ..shuffle(random);
-    final medium =
-        bank.where((q) => q.difficulty == Difficulty.medium).toList()
-          ..shuffle(random);
-    final hard = bank.where((q) => q.difficulty == Difficulty.hard).toList()
-      ..shuffle(random);
-    // Дұрыс/бұрыс туындылары үшін дереккөз кезегі.
+    List<Question> byD(Difficulty d) =>
+        bank.where((q) => q.difficulty == d).toList()..shuffle(random);
+    final easy = byD(Difficulty.easy);
+    final medium = byD(Difficulty.medium);
+    final hard = byD(Difficulty.hard);
+    final hardOrMed = hard.isNotEmpty ? hard : medium;
+
     final tfSource = List.of(bank)..shuffle(random);
     var tfIndex = 0;
-    Question nextTf(String id, Difficulty d) {
-      final src = tfSource[tfIndex % tfSource.length];
-      tfIndex++;
-      return _trueFalse(id, src, random, d);
-    }
-
     var seq = 0;
     String nextId() => '${nodeId}_q${seq++}';
-
-    Question reId(Question q) => Question(
+    Question tf(Difficulty d) => _trueFalse(
+        nextId(), tfSource[tfIndex++ % tfSource.length], random, d);
+    Question reTag(Question q, Difficulty d) => Question(
           id: nextId(),
           text: q.text,
           options: q.options,
           correctIndex: q.correctIndex,
           hint: q.hint,
           type: q.type,
-          difficulty: q.difficulty,
+          difficulty: d,
         );
 
     final pool = <Question>[];
-    // 25 easy: банк MCQ (≤18) + дұрыс/бұрыс.
-    for (final q in easy.take(18)) {
-      pool.add(reId(q));
+    // Пул ішінде сұрақ МӘТІНІ қайталанбауы тиіс — әйтпесе бір сессияға
+    // бірдей сұрақ екі рет түсуі мүмкін. Генератор/TF дубликат берсе,
+    // бірнеше рет қайта тартамыз (шектеулі — тұйықталмайды).
+    final usedTexts = <String>{};
+    void addUnique(Question q, Question Function()? retry) {
+      var candidate = q;
+      var tries = 0;
+      while (!usedTexts.add(candidate.text) && retry != null && tries < 8) {
+        candidate = retry();
+        tries++;
+      }
+      pool.add(candidate);
     }
-    while (pool.length < 25) {
-      pool.add(nextTf(nextId(), Difficulty.easy));
+
+    void fill(Difficulty tier, int need, List<Question> src) {
+      if (need <= 0) return;
+      final useGen = gen != null &&
+          (tier == Difficulty.light ||
+              tier == Difficulty.complex ||
+              tier == Difficulty.brainTeaser);
+      if (useGen) {
+        for (var i = 0; i < need; i++) {
+          addUnique(gen(nextId(), grade, random, tier),
+              () => gen(nextId(), grade, random, tier));
+        }
+        return;
+      }
+      // Банк сұрақтары ТҰТЫНЫЛАДЫ (removeAt) — light пен easy бір тізімді
+      // басынан қайта оқымайды (бұрын пулда дубликат кепілді болатын).
+      var added = 0;
+      while (added < need && src.isNotEmpty) {
+        addUnique(reTag(src.removeAt(0), tier), null);
+        added++;
+      }
+      while (added < need) {
+        addUnique(tf(tier), () => tf(tier));
+        added++;
+      }
     }
-    // 12 medium: банк MCQ (≤8) + 2 сәйкестендіру + дұрыс/бұрыс.
-    final mediumStart = pool.length;
-    for (final q in medium.take(8)) {
-      pool.add(reId(q));
-    }
+
+    fill(Difficulty.light, 14, easy);
+    fill(Difficulty.easy, 8, easy);
+    // medium (8) = match (мүмкін болса 2) + 2 кепілді TF + қалғаны банктен.
     final matchCount = pairs.length >= 4 ? 2 : 0;
     for (var m = 0; m < matchCount; m++) {
       pool.add(_match(nextId(), pairs, random));
     }
-    while (pool.length < mediumStart + 12) {
-      pool.add(nextTf(nextId(), Difficulty.medium));
-    }
-    // 5 hard: банк MCQ (≤4) + дұрыс/бұрыс.
-    final hardStart = pool.length;
-    for (final q in hard.take(4)) {
-      pool.add(reId(q));
-    }
-    while (pool.length < hardStart + 5) {
-      pool.add(nextTf(nextId(), Difficulty.hard));
-    }
+    addUnique(tf(Difficulty.medium), () => tf(Difficulty.medium));
+    addUnique(tf(Difficulty.medium), () => tf(Difficulty.medium));
+    fill(Difficulty.medium, 6 - matchCount, medium);
+    fill(Difficulty.hard, 7, hardOrMed);
+    fill(Difficulty.complex, 11, hardOrMed);
+    fill(Difficulty.brainTeaser, 8, hardOrMed);
     return pool;
   }
 
@@ -361,12 +520,14 @@ abstract final class Curriculum {
     );
   }
 
-  // ---------------- Математика генераторы ----------------
+  // ---------------- Математика пулы ----------------
 
-  /// Математика пулы.
-  /// 5–11 сынып: ТЕК осы node-тың тақырыбына (модуліне) сай нақты банк
-  /// сұрақтары — картадағы әр ұяшық өз тақырыбының ғана сұрақтарын береді.
-  /// 1–4 сынып (PDF қамтымаған): бұрынғы генератор.
+  /// Математика пулы — бір node = бір ТАҚЫРЫПТЫҢ (модульдің) тілімі, араласу ЖОҚ.
+  /// Сұрақтар тек осы тақырып банкінен (негізгі + кеңейтілген + «Қызыл кітап»)
+  /// БІРЕГЕЙ түрде, қиындық бойынша өсу ретімен алынады. Банк [mathNodesFor]
+  /// тең тілімге бөлінеді: node 0 — ең жеңіл тілім, соңғысы — ең қиын. Сонда бір
+  /// модуль бойы қиындық біртіндеп өседі әрі сұрақ ҚАЙТАЛАНБАЙДЫ (тақырыптық
+  /// тазалық). Тек банк БОС болғанда (1–4 сынып) генераторға ауысады.
   static List<Question> _mathPool(String nodeId, int grade, Random random) {
     var seq = 0;
     String nextId() => '${nodeId}_q${seq++}';
@@ -374,24 +535,77 @@ abstract final class Curriculum {
     // Тақырыпты (модульді) id-ден оқимыз: math_g5_m1_n3 → module = 1.
     final match = RegExp(r'_m(\d+)_').firstMatch(nodeId);
     final module = match != null ? int.parse(match.group(1)!) : 1;
-    final topic = mathBankByTopic[grade]?[module] ?? const <_Q>[];
+    final topic = _topicBank(grade, module);
 
-    if (topic.isEmpty) {
-      // 1–4 сынып: банк жоқ — генератормен толтырамыз.
-      return <Question>[
-        for (var i = 0; i < 25; i++)
-          _mathQuestion(nextId(), grade, random, Difficulty.easy),
-        for (var i = 0; i < 10; i++)
-          _mathQuestion(nextId(), grade, random, Difficulty.medium),
-        for (var i = 0; i < 2; i++) _mathMatch(nextId(), grade, random),
-        for (var i = 0; i < 5; i++)
-          _mathQuestion(nextId(), grade, random, Difficulty.hard),
-      ];
+    // Тақырып банкі жоқ (1–4 сынып) — генератордан құраймыз.
+    if (topic.isEmpty) return _mathGeneratedPool(nodeId, grade, random);
+
+    final nodeIndex = int.tryParse(
+            RegExp(r'_n(\d+)').firstMatch(nodeId)?.group(1) ?? '') ??
+        0;
+    final ordered = topic.toList()
+      ..sort((a, b) {
+        final d = a.$5.index.compareTo(b.$5.index);
+        return d != 0 ? d : a.$1.hashCode.compareTo(b.$1.hashCode);
+      });
+    final b = ordered.length;
+    final n = mathNodesFor(grade);
+    final base = b ~/ n; // әр тілімнің негізгі мөлшері
+    final rem = b % n; // алғашқы [rem] тілімге +1 сұрақ
+    final idx = nodeIndex.clamp(0, n - 1);
+    final start = idx * base + (idx < rem ? idx : rem);
+    final size = base + (idx < rem ? 1 : 0);
+    return [
+      for (var k = 0; k < size; k++) _bankQuestion(nextId(), ordered[start + k]),
+    ];
+  }
+
+  /// Тақырып банкі жоқ сыныптар (1–4) үшін генератор пулы (6 тиер, 56).
+  static List<Question> _mathGeneratedPool(
+      String nodeId, int grade, Random random) {
+    var seq = 0;
+    String nextId() => '${nodeId}_q${seq++}';
+    Question gen(Difficulty d) => _mathQuestion(nextId(), grade, random, d);
+    final pool = <Question>[];
+    _fillMathTier(pool, const [], 10, nextId, () => gen(Difficulty.light));
+    _fillMathTier(pool, const [], 7, nextId, () => gen(Difficulty.easy));
+    pool
+      ..add(_mathMatch(nextId(), grade, random))
+      ..add(_mathMatch(nextId(), grade, random));
+    _fillMathTier(pool, const [], 7, nextId, () => gen(Difficulty.medium));
+    _fillMathTier(pool, const [], 9, nextId, () => gen(Difficulty.hard));
+    _fillMathTier(pool, const [], 12, nextId, () => gen(Difficulty.complex));
+    _fillMathTier(pool, const [], 9, nextId, () => gen(Difficulty.brainTeaser));
+    return pool;
+  }
+
+  /// Пул тиерін [need] санға толтырады: банк сұрақтарын (керек болса
+  /// айналдырып қайталап) пайдаланады; банк бос болса ғана [gen] шақырады.
+  static void _fillMathTier(
+    List<Question> pool,
+    List<_Q> bank,
+    int need,
+    String Function() nextId,
+    Question Function() gen,
+  ) {
+    if (bank.isEmpty) {
+      // Генератор дубликат мәтін берсе — қайта тартамыз (пулда бір сұрақ
+      // екі рет тұрмасын; шектеулі айналым — кіші кеңістікте тұйықталмайды).
+      final usedTexts = pool.map((q) => q.text).toSet();
+      for (var i = 0; i < need; i++) {
+        var q = gen();
+        var tries = 0;
+        while (!usedTexts.add(q.text) && tries < 8) {
+          q = gen();
+          tries++;
+        }
+        pool.add(q);
+      }
+      return;
     }
-
-    // 5–11 сынып: тақырыптың барлық сұрағы (≥14, тек осы тақырыпқа сай).
-    final shuffled = topic.toList()..shuffle(random);
-    return [for (final raw in shuffled) _bankQuestion(nextId(), raw)];
+    for (var i = 0; i < need; i++) {
+      pool.add(_bankQuestion(nextId(), bank[i % bank.length]));
+    }
   }
 
   /// Сәйкестендіру: өрнек → мән (сыныпқа лайық, мәндер қайталанбайды).
@@ -460,6 +674,11 @@ abstract final class Curriculum {
 
     if (grade <= 2) {
       switch (difficulty) {
+        case Difficulty.light:
+          final a = 1 + random.nextInt(5);
+          final b = 1 + random.nextInt(5);
+          correct = a + b;
+          text = '$a + $b = ?';
         case Difficulty.easy:
           final a = 1 + random.nextInt(9);
           final b = 1 + random.nextInt(9);
@@ -475,9 +694,29 @@ abstract final class Curriculum {
           correct = 1 + random.nextInt(10);
           text = '$a + ? = ${a + correct}';
           hint = 'Қосындыдан $a-ны азайт';
+        case Difficulty.complex:
+          final a = 2 + random.nextInt(8);
+          final b = 2 + random.nextInt(8);
+          final c = 1 + random.nextInt(6);
+          correct = a + b + c;
+          text = '$a + $b + $c = ?';
+          hint = 'Солдан оңға қарай қос';
+        case Difficulty.brainTeaser:
+          // Сан тізбегі: тұрақты қадаммен өседі — келесісін тап.
+          final a = 1 + random.nextInt(4);
+          final d = 2 + random.nextInt(3);
+          correct = a + 3 * d;
+          text = 'Заңдылықты тап: $a, ${a + d}, ${a + 2 * d}, ?';
+          hint = 'Әр сан алдыңғыдан $d-ге көп';
       }
     } else if (grade <= 4) {
       switch (difficulty) {
+        case Difficulty.light:
+          final a = 2 + random.nextInt(4);
+          final b = 2 + random.nextInt(4);
+          correct = a * b;
+          text = '$a × $b = ?';
+          hint = 'Көбейту кестесі';
         case Difficulty.easy:
           final a = 2 + random.nextInt(8);
           final b = 2 + random.nextInt(8);
@@ -497,9 +736,30 @@ abstract final class Curriculum {
           correct = a * b + c;
           text = '$a × $b + $c = ?';
           hint = 'Алдымен көбейт, сосын қос';
+        case Difficulty.complex:
+          // (a + b) × c — жақшаны алдымен.
+          final a = 2 + random.nextInt(8);
+          final b = 2 + random.nextInt(8);
+          final c = 2 + random.nextInt(5);
+          correct = (a + b) * c;
+          text = '($a + $b) × $c = ?';
+          hint = 'Алдымен жақша ішін есепте';
+        case Difficulty.brainTeaser:
+          // Бөлінгіштік: 1..n ішінде k-ға бөлінетін сан нешеу?
+          final k = 2 + random.nextInt(3);
+          final n = 12 + random.nextInt(20);
+          correct = n ~/ k;
+          text = '1-ден $n-ге дейінгі сандардың ішінде $k-ға '
+              'бөлінетіні нешеу?';
+          hint = '$n-ді $k-ға бөл (бүтін бөлік)';
       }
     } else if (grade <= 6) {
       switch (difficulty) {
+        case Difficulty.light:
+          final a = 1 + random.nextInt(9);
+          final b = 1 + random.nextInt(9);
+          correct = a + b;
+          text = '$a + $b = ?';
         case Difficulty.easy:
           final a = 10 + random.nextInt(80);
           final b = 10 + random.nextInt(80);
@@ -525,9 +785,30 @@ abstract final class Curriculum {
           correct = a + b * c;
           text = '$a + $b × $c = ?';
           hint = 'Алдымен көбейту орындалады';
+        case Difficulty.complex:
+          // a × b − c × d (амалдар реті).
+          final a = 3 + random.nextInt(8);
+          final b = 2 + random.nextInt(8);
+          final c = 2 + random.nextInt(6);
+          final d = 1 + random.nextInt(5);
+          correct = a * b - c * d;
+          text = '$a × $b − $c × $d = ?';
+          hint = 'Әуелі екі көбейтуді, сосын азайтуды орында';
+        case Difficulty.brainTeaser:
+          // Қалдық: a-ны b-ге бөлгендегі қалдық.
+          final b = 3 + random.nextInt(7);
+          final a = 20 + random.nextInt(60);
+          correct = a % b;
+          text = '$a санын $b-ге бөлгендегі қалдық неше?';
+          hint = '$a = $b × ${a ~/ b} + қалдық';
       }
     } else if (grade <= 8) {
       switch (difficulty) {
+        case Difficulty.light:
+          final a = 2 + random.nextInt(6);
+          correct = a * a;
+          text = '$a² = ?';
+          hint = '$a × $a';
         case Difficulty.easy:
           if (random.nextBool()) {
             final a = 2 + random.nextInt(11);
@@ -554,10 +835,34 @@ abstract final class Curriculum {
           correct = x;
           text = '$a·x − $b = ${a * x - b} болса, x = ?';
           hint = 'Екі жаққа $b қосып, $a-ға бөл';
+        case Difficulty.complex:
+          // ax + b = cx + d (x екі жақта да), түбірі бүтін.
+          final x = 2 + random.nextInt(9);
+          final a = 4 + random.nextInt(5);
+          final c = 1 + random.nextInt(3);
+          final b = 1 + random.nextInt(9);
+          final d = (a - c) * x + b;
+          correct = x;
+          text = '${a}x + $b = ${c}x + $d, x = ?';
+          hint = 'x-терді бір жаққа, сандарды екінші жаққа жина';
+        case Difficulty.brainTeaser:
+          // Қосынды мен айырмадан үлкен санды табу.
+          final small = 3 + random.nextInt(20);
+          final diff = 2 + random.nextInt(18);
+          final big = small + diff;
+          correct = big;
+          text = 'Екі санның қосындысы ${big + small}, айырмасы $diff. '
+              'Үлкен сан неше?';
+          hint = 'Үлкені = (қосынды + айырма) ÷ 2';
       }
     } else if (grade == 9) {
       // Квадрат теңдеулер мен прогрессиялар.
       switch (difficulty) {
+        case Difficulty.light:
+          final n = 1 + random.nextInt(5);
+          correct = 1 << n;
+          text = '2^$n = ?';
+          hint = '2-ні $n рет көбейт';
         case Difficulty.easy:
           if (random.nextBool()) {
             final n = 1 + random.nextInt(6);
@@ -606,10 +911,32 @@ abstract final class Curriculum {
             text = 'Геометриялық прогрессия: b₁ = $b1, q = $q. b$n = ?';
             hint = 'bₙ = b₁ · qⁿ⁻¹';
           }
+        case Difficulty.complex:
+          // Арифм. прогрессияның алғашқы n мүшесінің қосындысы.
+          final a1 = 1 + random.nextInt(8);
+          final d = 1 + random.nextInt(5);
+          final n = 5 + random.nextInt(6);
+          correct = n * (2 * a1 + (n - 1) * d) ~/ 2;
+          text = 'Арифм. прогрессия a₁=$a1, d=$d. Алғашқы $n мүшенің '
+              'қосындысы Sₙ = ?';
+          hint = 'Sₙ = n·(2a₁ + (n−1)d) / 2';
+        case Difficulty.brainTeaser:
+          // Виет: түбірлердің квадраттарының қосындысы x₁²+x₂².
+          final p = 2 + random.nextInt(6);
+          final q = p + 1 + random.nextInt(5);
+          correct = p * p + q * q;
+          text = 'x² − ${p + q}x + ${p * q} = 0. Түбірлердің '
+              'квадраттарының қосындысы x₁² + x₂² = ?';
+          hint = '(x₁+x₂)² − 2x₁x₂ = ${p + q}² − 2·${p * q}';
       }
     } else if (grade == 10) {
       // Туынды мен логарифмдер.
       switch (difficulty) {
+        case Difficulty.light:
+          final n = 1 + random.nextInt(5);
+          correct = n;
+          text = 'log₂ ${1 << n} = ?';
+          hint = '2-ні неше рет көбейтсе ${1 << n} шығады?';
         case Difficulty.easy:
           if (random.nextBool()) {
             final n = 1 + random.nextInt(6);
@@ -654,10 +981,29 @@ abstract final class Curriculum {
             text = 'log₂ ${1 << n} + log₂ ${1 << m} = ?';
             hint = 'logₐ x + logₐ y = logₐ (x·y)';
           }
+        case Difficulty.complex:
+          // f(x) = ax² + bx + c туындысы нүктеде: 2ax₀ + b.
+          final a = 2 + random.nextInt(4);
+          final b = 1 + random.nextInt(9);
+          final c = 1 + random.nextInt(9);
+          final x0 = 1 + random.nextInt(5);
+          correct = 2 * a * x0 + b;
+          text = 'f(x) = ${a}x² + ${b}x + $c болса, f′($x0) = ?';
+          hint = 'f′(x) = 2·${a}x + $b';
+        case Difficulty.brainTeaser:
+          // Экстремум нүктесі: f(x)=x²−2a·x, f′(x)=0 → x=a.
+          final a = 2 + random.nextInt(8);
+          correct = a;
+          text = 'f(x) = x² − ${2 * a}x. f′(x) = 0 болғанда x = ?';
+          hint = 'f′(x) = 2x − ${2 * a} = 0';
       }
     } else {
       // 11-сынып: интеграл мен ықтималдық.
       switch (difficulty) {
+        case Difficulty.light:
+          final a = 2 + random.nextInt(8);
+          correct = a * a;
+          text = '$a² = ?';
         case Difficulty.easy:
           if (random.nextBool()) {
             // Тиын/текше ықтималдығы пайызбен.
@@ -700,10 +1046,30 @@ abstract final class Curriculum {
             text = '∫₀$a 3x² dx = ?';
             hint = '3x²-тің алғашқы функциясы — x³';
           }
+        case Difficulty.complex:
+          // Орналастыру: P(n,2) = n·(n − 1).
+          final n = 4 + random.nextInt(7);
+          correct = n * (n - 1);
+          text = '$n түрлі кітаптан 2-уін сөреге қатарластыра неше '
+              'тәсілмен қоюға болады?';
+          hint = 'P(n,2) = n·(n − 1)';
+        case Difficulty.brainTeaser:
+          // Терулер: C(n,3) = n(n−1)(n−2)/6.
+          final n = 5 + random.nextInt(4);
+          correct = n * (n - 1) * (n - 2) ~/ 6;
+          text = '$n адамнан 3 адамдық топты неше тәсілмен таңдауға '
+              'болады?';
+          hint = 'C(n,3) = n·(n−1)·(n−2) / 6';
       }
     }
 
-    // Дистракторлар: дұрыс жауапқа жақын, қайталанбайтын сандар.
+    return _numeric(id, text, hint, correct, difficulty, random);
+  }
+
+  /// Сандық жауапты сұрақ: дұрыс мәнге жақын, қайталанбайтын 4 нұсқа.
+  /// math/physics/cs генераторлары ортақ пайдаланады.
+  static Question _numeric(String id, String text, String? hint, int correct,
+      Difficulty difficulty, Random random) {
     final options = <int>{correct};
     while (options.length < 4) {
       final delta = 1 + random.nextInt(max(3, correct.abs() ~/ 3 + 2));
@@ -720,12 +1086,170 @@ abstract final class Curriculum {
     );
   }
 
+  /// Физика генераторы — формулалы сандық есептер, 6 деңгейге өрлейді
+  /// (мыңдаған бірегей; жауап есеппен есептеледі → дұрыстық кепілді).
+  static Question _physicsQuestion(
+      String id, int grade, Random random, Difficulty difficulty) {
+    int correct;
+    String text;
+    String? hint;
+    switch (difficulty) {
+      case Difficulty.light:
+        final t = 2 + random.nextInt(5);
+        final v = 2 + random.nextInt(8);
+        correct = v;
+        text = 'Дене $t с ішінде ${v * t} м жол жүрді. Жылдамдығы неше м/с?';
+        hint = 'v = s / t';
+      case Difficulty.easy:
+        final m = 2 + random.nextInt(8);
+        final a = 2 + random.nextInt(8);
+        correct = m * a;
+        text = 'Массасы $m кг денеге $a м/с² үдеу беретін күш неше Н?';
+        hint = 'F = m·a';
+      case Difficulty.medium:
+        final v0 = 2 + random.nextInt(8);
+        final a = 1 + random.nextInt(5);
+        final t = 2 + random.nextInt(5);
+        correct = v0 + a * t;
+        text = 'Бастапқы жылдамдық $v0 м/с, үдеу $a м/с², уақыт $t с. '
+            'Соңғы жылдамдық v неше м/с?';
+        hint = 'v = v₀ + a·t';
+      case Difficulty.hard:
+        final m = 1 + random.nextInt(9);
+        final h = 2 + random.nextInt(8);
+        correct = m * 10 * h;
+        text = 'Массасы $m кг дене $h м биіктікте. Потенциалдық энергиясы '
+            'Eₚ неше Дж? (g = 10 м/с²)';
+        hint = 'Eₚ = m·g·h';
+      case Difficulty.complex:
+        final m = 2 * (1 + random.nextInt(4)); // жұп масса → бүтін жауап
+        final v = 2 + random.nextInt(6);
+        correct = m * v * v ~/ 2;
+        text = 'Массасы $m кг дене $v м/с жылдамдықпен қозғалады. '
+            'Кинетикалық энергиясы Eₖ неше Дж?';
+        hint = 'Eₖ = m·v² / 2';
+      case Difficulty.brainTeaser:
+        final u = random.nextInt(6);
+        final a = 1 + random.nextInt(5);
+        final t = 2 + random.nextInt(4);
+        final v = u + a * t;
+        correct = a;
+        text = 'Дене жылдамдығы $t с ішінде $u м/с-тан $v м/с-қа артты. '
+            'Үдеуі неше м/с²?';
+        hint = 'a = (v − u) / t';
+    }
+    return _numeric(id, text, hint, correct, difficulty, random);
+  }
+
+  /// Информатика генераторы — екілік/логика/алгоритм, 6 деңгейге өрлейді.
+  static Question _csQuestion(
+      String id, int grade, Random random, Difficulty difficulty) {
+    int correct;
+    String text;
+    String? hint;
+    switch (difficulty) {
+      case Difficulty.light:
+        // Кең ауқым (1..30) — 14 сұрақтық тиерге жеткілікті түрлілік.
+        final n = 1 + random.nextInt(30);
+        correct = n;
+        text = 'Екілік сан ${n.toRadixString(2)}₂ ондық санақта неше?';
+        hint = 'Разрядтарды 2-нің дәрежелерімен қос';
+      case Difficulty.easy:
+        final n = 1 + random.nextInt(8);
+        correct = 1 << n;
+        text = '$n биттік ұяшықта неше түрлі мән сақтауға болады?';
+        hint = '2ⁿ';
+      case Difficulty.medium:
+        final a = 1 + random.nextInt(15);
+        final b = 1 + random.nextInt(15);
+        correct = a & b;
+        text = '$a AND $b (биттік ЖӘНЕ) = ?';
+        hint = 'Әр битте екеуі де 1 болса — 1';
+      case Difficulty.hard:
+        final a = 2 + random.nextInt(7);
+        final b = 2 + random.nextInt(7);
+        correct = a * b;
+        text = 'Қос цикл: сыртқысы $a рет, ішкісі $b рет қайталанады. '
+            'Ішкі дене барлығы неше рет орындалады?';
+        hint = 'a × b';
+      case Difficulty.complex:
+        final a = 1 + random.nextInt(31);
+        final b = 1 + random.nextInt(31);
+        correct = a ^ b;
+        text = '$a XOR $b (биттік ерекше НЕМЕСЕ) = ?';
+        hint = 'Биттері әртүрлі болса — 1';
+      case Difficulty.brainTeaser:
+        // Екі нұсқа кезектеседі — 8 сұрақтық тиерге жеткілікті түрлілік
+        // (жалғыз факториал шаблоны 4-ақ түрлі мәтін беретін).
+        if (random.nextBool()) {
+          final n = 3 + random.nextInt(4); // 3..6
+          var f = 1;
+          for (var i = 2; i <= n; i++) {
+            f *= i;
+          }
+          correct = f;
+          text =
+              '$n түрлі файлды неше түрлі ретпен орналастыруға болады? (n!)';
+          hint = 'n! = 1·2·…·$n';
+        } else {
+          // x XOR x = 0 «жойылу» қасиеті — криптографияның негізгі трюгі.
+          final a = 2 + random.nextInt(29);
+          final b = 1 + random.nextInt(30);
+          correct = b;
+          text = '$a XOR $b XOR $a = ?';
+          hint = 'x XOR x = 0: бірдей сандар бірін-бірі жояды';
+        }
+    }
+    return _numeric(id, text, hint, correct, difficulty, random);
+  }
+
   // ---------------- Сұрақ банктері ----------------
 
-  /// Берілген сыныптың барлық математика банк сұрағы (екі модуль қоса).
+  /// Бір тақырыптың (модульдің) толық банкі: негізгі + кеңейтілген +
+  /// «Қызыл кітап» біріктіріледі ӘРІ мәтін бойынша ДЕДУПЛИКАЦИЯЛАНАДЫ
+  /// (дереккөздер қабаттасса, бір сұрақ екі рет болмауы үшін — әйтпесе
+  /// disjoint тілімдерде бірдей сұрақ қайталанып кетер еді).
+  static List<_Q> _topicBank(int grade, int module) {
+    final seen = <String>{};
+    final out = <_Q>[];
+    for (final q in [
+      ...?mathBankByTopic[grade]?[module],
+      ...?mathBankAdvanced[grade]?[module],
+      ...?mathBankAdvanced2[grade]?[module],
+      ...?mathBankHard[grade]?[module],
+      ...?mathBankRedbook[grade]?[module],
+      ...?mathBankExtra[grade]?[module],
+    ]) {
+      if (seen.add(q.$1)) out.add(q);
+    }
+    return out;
+  }
+
+  /// Осы сынып/модуль үшін математика тақырып банкі бар ма? Бар болса —
+  /// node пулы ТЕК сол тақырыптан құралады (5–11 сынып); жоқ болса (1–4)
+  /// генератор қолданылады.
+  static bool hasTopicBank(int grade, int module) =>
+      _topicBank(grade, module).isNotEmpty;
+
+  /// Берілген сыныптың барлық математика банк сұрағы (барлық дереккөз қоса).
   static List<_Q> _mathRaw(int grade) => [
         for (final topic
             in mathBankByTopic[grade]?.values ?? const <List<_Q>>[])
+          ...topic,
+        for (final topic
+            in mathBankAdvanced[grade]?.values ?? const <List<_Q>>[])
+          ...topic,
+        for (final topic
+            in mathBankAdvanced2[grade]?.values ?? const <List<_Q>>[])
+          ...topic,
+        for (final topic
+            in mathBankHard[grade]?.values ?? const <List<_Q>>[])
+          ...topic,
+        for (final topic
+            in mathBankRedbook[grade]?.values ?? const <List<_Q>>[])
+          ...topic,
+        for (final topic
+            in mathBankExtra[grade]?.values ?? const <List<_Q>>[])
           ...topic,
       ];
 
@@ -739,6 +1263,126 @@ abstract final class Curriculum {
         _bankQuestion('${subject}_g${grade}_b$i', raw[i]),
     ];
   }
+
+  /// Сол МОДУЛЬДІҢ тақырыбына сай банк сұрақтары (тақырып тазалығы).
+  static List<Question> _bankForModule(String subject, int grade, int module) {
+    final raw = _moduleBucket(subject, grade, module);
+    return [
+      for (var i = 0; i < raw.length; i++)
+        _bankQuestion('${subject}_g${grade}_m${module}_b$i', raw[i]),
+    ];
+  }
+
+  /// Грейд банкін модульдің тақырыбы бойынша екіге бөледі (5–11 сынып). 2-модуль
+  /// тақырыбының кілт сөздері сәйкес келсе — 2-модульге, әйтпесе 1-модульге.
+  /// Бөліну азғантай (бір жағы &lt;8) болса немесе кілт сөз жоқ болса — бөлінбейді
+  /// (барлық банк), сонда регрессия болмайды.
+  static List<_Q> _moduleBucket(String subject, int grade, int module) {
+    // Жаңа тақырыптық модульдер (3+): банк тікелей пән топик-картасынан —
+    // кілт сөзбен бөлінбейді (1–2-модульдің жалпақ банкіне тимейді).
+    final topic = _subjectTopicBanks[subject]?[grade]?[module];
+    if (topic != null && topic.isNotEmpty) return topic;
+    final raw = _rawBank(subject, grade);
+    final kw = _module2Keywords[subject]?[grade];
+    if (kw == null || raw.length < 16) return raw;
+    final b1 = <_Q>[];
+    final b2 = <_Q>[];
+    for (final q in raw) {
+      // Мәтін + нұсқалар + түсіндірме: бос орынды (___) сұрақта жауап сөзі
+      // нұсқада тұрады, сондықтан оны да тексереміз.
+      final t = '${q.$1} ${q.$2.join(' ')} ${q.$4 ?? ''}'.toLowerCase();
+      (kw.any(t.contains) ? b2 : b1).add(q);
+    }
+    if (b1.length < 8 || b2.length < 8) return raw; // тым қисық — бөлмейміз
+    return module >= 2 ? b2 : b1;
+  }
+
+  /// Пәннің ЖАҢА тақырыптық модульдерінің (3-модульден бастап) банктері:
+  /// пән → сынып → модуль → сұрақтар. Атаулары [_moduleTitles]-пен үйлеседі.
+  static const Map<String, Map<int, Map<int, List<_Q>>>> _subjectTopicBanks = {
+    'history': historyTopicBanks,
+    'cs': csTopicBanks,
+  };
+
+  /// Әр пәннің 2-МОДУЛІНІҢ (5–11 сынып) тақырып кілт сөздері. Банк сұрағының
+  /// мәтіні осылардың біріне сай болса — 2-модуль тақырыбы, әйтпесе 1-модуль.
+  /// Дереккөз: бар (тексерілген) банк сұрақтары — жаңа факт қосылмайды.
+  static const Map<String, Map<int, List<String>>> _module2Keywords = {
+    'kazakh': {
+      5: ['септік', 'ілік', 'барыс', 'табыс', 'жатыс', 'шығыс', 'көмектес'],
+      6: ['мақал', 'мәтел', 'нақыл'],
+      7: ['абай', 'өлең', 'қара сөз', 'аудар', 'онегин', 'құнанбай'],
+      8: ['сөйлем', 'бастауыш', 'баяндауыш', 'тұрлаулы', 'толықтауыш',
+          'пысықтауыш', 'анықтауыш'],
+      9: ['әдебиет', 'жыр', 'дастан', 'ақын', 'жазушы', 'эпопея', 'роман',
+          'әуезов', 'махамбет', 'поэма'],
+      10: ['метафора', 'теңеу', 'эпитет', 'троп', 'символ', 'көркемдегіш',
+          'бейне'],
+      11: ['шешен', 'би ', 'дау', 'төле', 'қазыбек', 'әйтеке'],
+    },
+    'english': {
+      5: ['hobby', 'hobbies', 'enjoy', 'free time', 'collect', 'favourite'],
+      6: ['travel', 'trip', 'abroad', 'ticket', 'luggage', 'passport',
+          'journey', 'flight'],
+      7: ['than', 'more', 'comparative', 'biggest', 'taller', 'better', 'best',
+          'most', '-er'],
+      8: ['must', 'can', 'should', 'have to', 'modal', 'may', 'ought'],
+      9: ['if', 'conditional', 'would', 'unless'],
+      10: ['phrasal', 'turn on', 'give up', 'look after', 'look for', 'put on',
+          'take off', 'turn off'],
+      11: ['academic', 'formal', 'furthermore', 'however', 'essay', 'argue'],
+    },
+    'physics': {
+      5: ['өлше', 'бірлік', 'метр', 'килограмм', 'секунд', 'шама', 'эталон',
+          'дәлдік'],
+      6: ['энергия', 'потенциал', 'кинетик', 'сақталу'],
+      7: ['күш', 'масса', 'ньютон', 'ауырлық', 'салмақ'],
+      8: ['электр', 'ток', 'кернеу', 'ом', 'ампер', 'вольт', 'кедергі',
+          'тізбек', 'изолятор', 'өткізгіш', 'найзағай', 'батарей', 'қуат',
+          'розетка', 'сақтандырғыш', 'шам'],
+      9: ['тербеліс', 'толқын', 'период', 'жиілік', 'герц', 'маятник'],
+      10: ['термодинамика', 'ішкі энергия', 'цикл', 'газ заң', 'жұмыс'],
+      11: ['астро', 'жұлдыз', 'галактика', 'планета', 'ғарыш', 'жарық жыл',
+          'күн жүйес'],
+    },
+    'cs': {
+      5: ['файл', 'папка', 'қалта', 'кеңейтім', '.jpg', '.txt', '.doc'],
+      6: ['процессор', 'cpu', 'жад', 'ram', 'диск', 'құрылғы', 'монитор',
+          'пернетақта', 'тінтуір'],
+      7: ['scratch', 'спрайт', 'блок', 'жоба'],
+      8: ['шарт', 'цикл', 'if', 'for', 'while', 'range', 'else'],
+      9: ['тізім', 'list', 'сөздік', 'dict', 'индекс', 'массив'],
+      10: ['дерекқор', 'database', 'sql', 'кесте', 'жазба', 'өріс'],
+      11: ['жоба', 'презентация', 'команда', 'тест', 'өнім'],
+    },
+    'biology': {
+      5: ['орта', 'бейімдел', 'мекен', 'тіршілік белгі'],
+      6: ['тамыр', 'сабақ', 'жапырақ', 'гүл', 'жеміс', 'мүше'],
+      7: ['жүйе', 'ас қорыту', 'қан айналым', 'тін', 'жүрек'],
+      8: ['тыныс', 'өкпе', 'қан', 'жүрек', 'айналым'],
+      9: ['популяция', 'экожүйе', 'қоректік тізбек', 'өндіруші'],
+      10: ['бөліну', 'митоз', 'мейоз', 'хромосома'],
+      11: ['экология', 'биосфера', 'зат айналым', 'ласта'],
+    },
+    'chemistry': {
+      5: ['қоспа', 'таза зат', 'сүзу', 'буланд', 'дистил'],
+      6: ['атом', 'молекула', 'бөлшек', 'күй', 'қатты'],
+      7: ['элемент', 'таңба', 'металл', 'бейметалл'],
+      8: ['байланыс', 'ионд', 'коваленттік', 'электрон'],
+      9: ['қышқыл', 'негіз', 'тұз', 'бейтарап'],
+      10: ['көмірсутек', 'алкан', 'алкен', 'метан'],
+      11: ['тотығу', 'тотықсыздан', 'редокс', 'электрон беру'],
+    },
+    'history': {
+      5: ['қола', 'металл', 'қорған', 'беғазы'],
+      6: ['үйсін', 'қаңлы', 'жетісу', 'жібек'],
+      7: ['қала', 'отырар', 'тараз', 'фараби', 'түркістан', 'кесене'],
+      8: ['тәуке', 'жеті жарғы', ' би', 'төле', 'қасым', 'жүз'],
+      9: ['отар', 'кенесары', 'ресей', 'көтеріліс', 'махамбет', 'патша'],
+      10: ['соғыс', 'желтоқсан', 'бауыржан', '1986', 'момышұлы', 'панфилов'],
+      11: ['астана', 'экспо', 'символ', 'елтаңба', 'елорда', 'рәміз'],
+    },
+  };
 
   static Question _bankQuestion(String id, _Q raw) {
     final correct = raw.$2[raw.$3];
@@ -758,16 +1402,21 @@ abstract final class Curriculum {
 
   static List<_Q> _rawBank(String subject, int grade) {
     if (subject == 'math') return _mathRaw(grade);
-    final (legacy, ext) = switch (subject) {
+    final (Map<int, List<_Q>> legacy, Map<int, List<_Q>> ext) = switch (subject) {
       'kazakh' => (_kazakhBank, kazakhBankExt),
       'english' => (_englishBank, englishBankExt),
       'physics' => (_physicsBank, physicsBankExt),
       'cs' => (_csBank, csBankExt),
+      'biology' => (const <int, List<_Q>>{}, biologyBankExt),
+      'chemistry' => (const <int, List<_Q>>{}, chemistryBankExt),
+      'history' => (const <int, List<_Q>>{}, historyBankExt),
       _ => (_kazakhBank, kazakhBankExt),
     };
     final merged = [...?legacy[grade], ...?ext[grade]];
     if (merged.isNotEmpty) return merged;
-    return legacy[grade <= 4 ? 1 : (grade <= 7 ? 5 : 9)]!;
+    // Банк табылмаса — ұқсас сыныпқа шегіну (legacy + ext қоса).
+    final fallback = grade <= 4 ? 1 : (grade <= 7 ? 5 : 9);
+    return [...?legacy[fallback], ...?ext[fallback]];
   }
 
   static const Map<int, List<_Q>> _kazakhBank = {
@@ -1813,14 +2462,85 @@ abstract final class Curriculum {
         ('append()', 'тізімге қосу'),
       ],
     },
+    'biology': {
+      5: [
+        ('ядро', 'ДНҚ сақтау'),
+        ('хлоропласт', 'фотосинтез'),
+        ('тамыр', 'су сіңіру'),
+        ('гүл', 'көбею'),
+        ('желбезек', 'су ортасы'),
+        ('жапырақ', 'қорек жасау'),
+      ],
+      9: [
+        ('жүрек', 'қан айдау'),
+        ('өкпе', 'оттегі алу'),
+        ('бүйрек', 'қан сүзу'),
+        ('ми', 'ағзаны басқару'),
+        ('ген', 'белгі кодтау'),
+        ('митоз', 'бірдей жасуша'),
+        ('мейоз', 'жыныс жасушасы'),
+      ],
+    },
+    'chemistry': {
+      5: [
+        ('атом', 'ең кіші бөлшек'),
+        ('молекула', 'атомдар қосындысы'),
+        ('H₂O', 'су'),
+        ('таза зат', 'бір зат'),
+        ('қоспа', 'бірнеше зат'),
+        ('Fe', 'темір'),
+      ],
+      9: [
+        ('қышқыл', 'H⁺ ион'),
+        ('негіз', 'OH⁻ ион'),
+        ('NaCl', 'ас тұзы'),
+        ('иондық байланыс', 'электрон беру/алу'),
+        ('коваленттік байланыс', 'электрон ортақтасу'),
+        ('тотығу', 'электрон жоғалту'),
+      ],
+    },
+    'history': {
+      5: [
+        ('Тас дәуірі', 'аңшылық'),
+        ('Қола дәуірі', 'металл игеру'),
+        ('Беғазы-Дәндібай', 'қола мәдениеті'),
+        ('Неолит', 'егіншілік'),
+        ('Қорған', 'көне зират'),
+        ('Сақтар', 'алтын өңдеу'),
+      ],
+      9: [
+        ('1465 жыл', 'Қазақ хандығы'),
+        ('1723 жыл', 'Ақтабан шұбырынды'),
+        ('1991 жыл', 'Тәуелсіздік'),
+        ('Тәуке хан', 'Жеті Жарғы'),
+        ('Кенесары', 'ұлт-азаттық көтеріліс'),
+        ('Абылай хан', 'жоңғарға қарсы'),
+      ],
+    },
   };
 
   // ---------------- Модуль атаулары ----------------
 
   static String _moduleTitle(String subject, int grade, int module) {
     final titles = _moduleTitles[subject]?[grade];
-    if (titles == null) return '$grade-сынып · $module-модуль';
+    if (titles == null || module > titles.length) {
+      return '$grade-сынып · $module-модуль';
+    }
     return titles[module - 1];
+  }
+
+  /// Сол пән/сыныптағы модуль (тақырып) саны.
+  static int _moduleCountFor(String subject, int grade) {
+    final titles = _moduleTitles[subject]?[grade];
+    if (titles != null) return titles.length;
+    // Биология мен химия — тек 5–11 сыныпта (төменгі сыныпта мектеп
+    // бағдарламасында жоқ, банкі де жоқ). 1–4-те node жасалмайды.
+    if (subject == 'biology' ||
+        subject == 'chemistry' ||
+        subject == 'history') {
+      return 0;
+    }
+    return modulesPerGrade;
   }
 
   static const Map<String, Map<int, List<String>>> _moduleTitles = {
@@ -1829,13 +2549,63 @@ abstract final class Curriculum {
       2: ['20-ға дейін санау', 'Ұзындық пен өлшем'],
       3: ['Көбейту кестесі', 'Бөлу амалы'],
       4: ['Көп таңбалы сандар', 'Геометрия негіздері'],
-      5: ['Натурал сандар', 'Жай бөлшектер'],
-      6: ['Ондық бөлшектер', 'Теріс сандар'],
-      7: ['Алгебра негіздері', 'Сызықтық теңдеулер'],
-      8: ['Квадрат түбір', 'Функциялар'],
-      9: ['Квадрат теңдеулер', 'Тригонометрия негіздері'],
-      10: ['Туынды', 'Логарифмдер'],
-      11: ['Интеграл', 'Ықтималдық теориясы'],
+      // 5–11: 2 алгебра/арифметика тақырыбы + 1 геометрия (оқулыққа сай).
+      5: [
+        'Натурал сандар мен амалдар',
+        'Жай бөлшектер',
+        'Ондық бөлшектер мен пайыз',
+        'Геометрия негіздері',
+        'Өлшем бірліктері',
+        'Мәтінді есептер'
+      ],
+      6: [
+        'Ондық бөлшектермен амалдар',
+        'Бүтін және рационал сандар',
+        'Қатынас, пропорция, координата',
+        'Пайыз бен пайыздық есептер',
+        'Геометрия: аудан мен шеңбер',
+        'Статистика мен диаграммалар'
+      ],
+      7: [
+        'Алгебралық өрнектер мен дәреже',
+        'Сызықтық теңдеулер мен көпмүшелер',
+        'Геометрия: бұрыштар мен үшбұрыштар',
+        'Теңдеулер жүйесі',
+        'Сызықтық функциялар',
+        'Статистика мен ықтималдық'
+      ],
+      8: [
+        'Квадрат түбір мен нақты сандар',
+        'Функциялар мен теңсіздіктер',
+        'Геометрия: төртбұрыш, аудан, Пифагор',
+        'Көпмүшелер мен көбейткіштерге жіктеу',
+        'Квадрат теңдеулер',
+        'Рационал өрнектер'
+      ],
+      9: [
+        'Квадрат теңдеулер',
+        'Прогрессиялар мен тригонометрия',
+        'Геометрия: векторлар мен шеңбер',
+        'Квадраттық функциялар',
+        'Теңсіздіктер',
+        'Ықтималдық пен комбинаторика'
+      ],
+      10: [
+        'Тригонометрия',
+        'Туынды және оның қолданысы',
+        'Геометрия: стереометрия негіздері',
+        'Дәреже мен түбірлер',
+        'Логарифмдер',
+        'Аналитикалық геометрия'
+      ],
+      11: [
+        'Интеграл',
+        'Логарифм, көрсеткіш, ықтималдық',
+        'Геометрия: денелер мен көлемдер',
+        'Туынды (толық)',
+        'Функцияны зерттеу',
+        'Тригонометриялық теңдеулер'
+      ],
     },
     'kazakh': {
       1: ['Әліппе', 'Буын және сөз'],
@@ -1881,13 +2651,56 @@ abstract final class Curriculum {
       2: ['Графикалық редактор', 'Қауіпсіз интернет'],
       3: ['Мәтін теру', 'Презентация жасау'],
       4: ['Алгоритм дегеніміз не', 'Scratch негіздері'],
-      5: ['Ақпарат әлемі', 'Файлдар мен папкалар'],
-      6: ['Екілік жүйе', 'Компьютер құрылысы'],
-      7: ['Алгоритмдер', 'Scratch жобалары'],
-      8: ['Python негіздері', 'Шарт пен цикл'],
-      9: ['Python функциялары', 'Деректер құрылымы'],
-      10: ['Веб-әзірлеу негіздері', 'Деректер қоры'],
-      11: ['Жасанды интеллект', 'Жобалық жұмыс'],
+      5: ['Ақпарат әлемі', 'Файлдар мен папкалар',
+          'Компьютер қауіпсіздігі', 'Мәтін редакторы'],
+      6: ['Екілік жүйе', 'Компьютер құрылысы',
+          'Интернет пен желілер', 'Компьютерлік графика'],
+      7: ['Алгоритмдер', 'Scratch жобалары',
+          'Электрондық кестелер', 'Ақпаратты өлшеу: бит пен байт'],
+      8: ['Python негіздері', 'Шарт пен цикл',
+          'Python: жолдар мен мәтін', 'Кибергигиена мен қауіпсіздік'],
+      9: ['Python функциялары', 'Деректер құрылымы',
+          'Іздеу мен сұрыптау алгоритмдері', 'Логикалық алгебра'],
+      10: ['Веб-әзірлеу негіздері', 'Деректер қоры',
+          'Желілер мен хаттамалар', 'Криптография негіздері'],
+      11: ['Жасанды интеллект', 'Жобалық жұмыс',
+          'Бұлттық технологиялар мен IT-мамандықтар',
+          'Цифрлық этика мен қоғам'],
+    },
+    'biology': {
+      5: ['Жасуша — тіршілік негізі', 'Тірі ағза мен орта'],
+      6: ['Өсімдіктер дүниесі', 'Өсімдік мүшелері'],
+      7: ['Жануарлар дүниесі', 'Мүшелер жүйесі'],
+      8: ['Адам ағзасының жүйелері', 'Тыныс алу мен қан айналым'],
+      9: ['Генетика негіздері', 'Популяция мен экожүйе'],
+      10: ['Зат пен энергия алмасу', 'Жасуша бөлінуі'],
+      11: ['Эволюция ілімі', 'Экология және биосфера'],
+    },
+    'chemistry': {
+      5: ['Заттар және қасиеттері', 'Таза зат пен қоспа'],
+      6: ['Физикалық және химиялық құбылыстар', 'Заттың құрылысы'],
+      7: ['Атом мен молекула', 'Химиялық элементтер'],
+      8: ['Периодтық жүйе', 'Химиялық байланыс'],
+      9: ['Химиялық реакциялар', 'Қышқыл, негіз, тұз'],
+      10: ['Органикалық химия негіздері', 'Көмірсутектер'],
+      11: ['Металдар мен бейметалдар', 'Тотығу-тотықсыздану'],
+    },
+    'history': {
+      5: ['Тас дәуірі', 'Қола дәуірі', 'Темір дәуірі',
+          'Ежелгі өнер мен наным-сенім'],
+      6: ['Сақтар мен ғұндар', 'Үйсін мен қаңлы', 'Сарматтар',
+          'Ежелгі көшпелілер өркениеті'],
+      7: ['Түркі қағанаты', 'Ортағасырлық қалалар', 'Қарахан мемлекеті',
+          'Алтын Орда'],
+      8: ['Қазақ хандығының құрылуы', 'Хандар мен билер',
+          'Жыраулар мен күй өнері', 'Көшпелі өмір салты мен дәстүрлер'],
+      9: ['Жоңғар шапқыншылығы', 'Отарлау мен көтерілістер',
+          'Қазақ ағартушылары', 'ХХ ғасыр басы мен 1916 жылғы көтеріліс'],
+      10: ['Кеңес дәуірі', 'Ұлы Отан соғысы мен Желтоқсан',
+          'Индустрияландыру мен тың игеру', 'Байқоңыр мен ғылым'],
+      11: ['Тәуелсіздік', 'Қазіргі Қазақстан',
+          'Сыртқы саясат пен әлемдік қауымдастық',
+          'Рухани жаңғыру мен мәдени мұра'],
     },
   };
 }

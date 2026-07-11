@@ -29,7 +29,7 @@ class AppDrawer extends ConsumerWidget {
 
     return Drawer(
       width: MediaQuery.sizeOf(context).width * .78,
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.horizontal(
           right: Radius.circular(AppRadius.xl),
@@ -106,7 +106,7 @@ class AppDrawer extends ConsumerWidget {
                 _DrawerRow(
                   icon: Icons.emoji_events_rounded,
                   iconColor: AppColors.steppeGoldDeep,
-                  iconBg: AppColors.steppeGoldLight,
+                  iconBg: AppColors.tintGold,
                   label: AppStrings.drawerTournament,
                   badge: const _Badge(
                     text: AppStrings.drawerActive,
@@ -120,7 +120,7 @@ class AppDrawer extends ConsumerWidget {
                 _DrawerRow(
                   icon: Icons.group_rounded,
                   iconColor: AppColors.eagleBlue,
-                  iconBg: AppColors.eagleBlueLight,
+                  iconBg: AppColors.tintBlue,
                   label: AppStrings.drawerFriends,
                   badge: incomingCount > 0
                       ? _Badge(
@@ -136,11 +136,21 @@ class AppDrawer extends ConsumerWidget {
                 _DrawerRow(
                   icon: Icons.settings_rounded,
                   iconColor: AppColors.cosmicPurple,
-                  iconBg: AppColors.cosmicPurpleLight,
+                  iconBg: AppColors.tintPurple,
                   label: AppStrings.drawerSettings,
                   onTap: () {
                     Navigator.pop(context);
                     context.push('/settings');
+                  },
+                ),
+                _DrawerRow(
+                  icon: Icons.insights_rounded,
+                  iconColor: AppColors.successJade,
+                  iconBg: AppColors.successJade.withValues(alpha: .14),
+                  label: AppStrings.guardianMenu,
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push('/guardian');
                   },
                 ),
                 const Padding(
@@ -156,7 +166,10 @@ class AppDrawer extends ConsumerWidget {
                 ),
                 _SecondaryLink(
                   label: AppStrings.drawerAbout,
-                  onTap: () => _showInfoSnack(context, AppStrings.drawerAbout),
+                  onTap: () {
+                    Navigator.pop(context);
+                    context.push('/about');
+                  },
                 ),
               ],
             ),
@@ -169,7 +182,7 @@ class AppDrawer extends ConsumerWidget {
                 _DrawerRow(
                   icon: Icons.logout_rounded,
                   iconColor: AppColors.dangerCoral,
-                  iconBg: const Color(0xFFFFEBEE),
+                  iconBg: AppColors.dangerCoral.withValues(alpha: .14),
                   label: AppStrings.drawerLogout,
                   labelColor: AppColors.dangerCoral,
                   onTap: () async {
@@ -205,7 +218,7 @@ class AppDrawer extends ConsumerWidget {
                   child: Text(
                     AppStrings.appVersion,
                     style: AppTypography.caption
-                        .copyWith(color: AppColors.mist, fontSize: 11),
+                        .copyWith(color: AppColors.muted, fontSize: 11),
                   ),
                 ),
               ],
@@ -351,7 +364,7 @@ class _DrawerRow extends StatelessWidget {
                   label,
                   style: AppTypography.body.copyWith(
                     fontWeight: FontWeight.w800,
-                    color: labelColor ?? AppColors.nightInk,
+                    color: labelColor ?? AppColors.ink,
                   ),
                 ),
               ),
@@ -359,8 +372,8 @@ class _DrawerRow extends StatelessWidget {
                 badge!,
                 const SizedBox(width: AppSpacing.sp2),
               ],
-              const Icon(Icons.chevron_right_rounded,
-                  color: AppColors.mist, size: 22),
+              Icon(Icons.chevron_right_rounded,
+                  color: AppColors.muted, size: 22),
             ],
           ),
         ),
@@ -414,7 +427,7 @@ class _SecondaryLink extends StatelessWidget {
         ),
         child: Text(
           label,
-          style: AppTypography.body.copyWith(color: AppColors.slate),
+          style: AppTypography.body.copyWith(color: AppColors.inkSoft),
         ),
       ),
     );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../core/constants/app_strings.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_motion.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import 'oyu_ornament.dart';
@@ -37,9 +38,9 @@ class AppTabBar extends StatelessWidget {
           // Бар негізі
           Positioned.fill(
             child: Container(
-              decoration: const BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.vertical(
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(AppRadius.xl),
                 ),
                 boxShadow: AppColors.navShadow,
@@ -111,13 +112,15 @@ class _TabItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = active ? AppColors.steppeGoldDeep : AppColors.mist;
-    return Semantics(
-      button: true,
-      selected: active,
-      label: label,
-      child: InkWell(
-        onTap: onTap,
+    final color = active ? AppColors.steppeGoldDeep : AppColors.muted;
+    // haptic: false — таб ауысуының haptic-і router деңгейінде беріледі.
+    return Pressable(
+      onTap: onTap,
+      haptic: false,
+      pressedScale: 0.88,
+      semanticLabel: label,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -161,39 +164,36 @@ class _RaisedTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      selected: active,
-      label: label,
-      child: GestureDetector(
-        onTap: onTap,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              width: AppSizes.raisedTab,
-              height: AppSizes.raisedTab,
-              decoration: BoxDecoration(
-                gradient: active ? AppColors.goldSoar : AppColors.eagleGrad,
-                shape: BoxShape.circle,
-                border: Border.all(color: AppColors.white, width: 4),
-                boxShadow:
-                    active ? AppColors.goldGlow : AppColors.raisedTabShadow,
-              ),
-              child: const Icon(Icons.menu_book_rounded,
-                  color: AppColors.white, size: 26),
+    return Pressable(
+      onTap: onTap,
+      haptic: false,
+      pressedScale: 0.92,
+      semanticLabel: label,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 250),
+            width: AppSizes.raisedTab,
+            height: AppSizes.raisedTab,
+            decoration: BoxDecoration(
+              gradient: active ? AppColors.goldSoar : AppColors.eagleGrad,
+              shape: BoxShape.circle,
+              border: Border.all(color: AppColors.white, width: 4),
+              boxShadow:
+                  active ? AppColors.goldGlow : AppColors.raisedTabShadow,
             ),
-            const SizedBox(height: AppSpacing.sp1),
-            Text(
-              label,
-              style: AppTypography.tabLabel.copyWith(
-                color:
-                    active ? AppColors.steppeGoldDeep : AppColors.slate,
-              ),
+            child: const Icon(Icons.menu_book_rounded,
+                color: AppColors.white, size: 26),
+          ),
+          const SizedBox(height: AppSpacing.sp1),
+          Text(
+            label,
+            style: AppTypography.tabLabel.copyWith(
+              color: active ? AppColors.steppeGoldDeep : AppColors.inkSoft,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

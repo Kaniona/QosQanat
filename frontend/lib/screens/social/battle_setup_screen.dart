@@ -68,7 +68,7 @@ class _BattleSetupScreenState extends ConsumerState<BattleSetupScreen> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(AppSpacing.sp5),
                   decoration: BoxDecoration(
-                    color: AppColors.white,
+                    color: AppColors.surface,
                     borderRadius: AppRadius.rLg,
                     boxShadow: AppColors.sh1,
                   ),
@@ -81,7 +81,7 @@ class _BattleSetupScreenState extends ConsumerState<BattleSetupScreen> {
                 Container(
                   padding: const EdgeInsets.all(AppSpacing.sp4),
                   decoration: BoxDecoration(
-                    color: AppColors.white,
+                    color: AppColors.surface,
                     borderRadius: AppRadius.rLg,
                     border: Border.all(color: AppColors.eagleBlue, width: 2),
                     boxShadow: AppColors.sh2,
@@ -192,18 +192,18 @@ class _Pill extends StatelessWidget {
         ),
         decoration: BoxDecoration(
           gradient: active ? AppColors.eagleGrad : null,
-          color: active ? null : AppColors.white,
+          color: active ? null : AppColors.surface,
           borderRadius: AppRadius.rFull,
           border: active
               ? null
-              : Border.all(color: AppColors.cloudBorder, width: 1.5),
+              : Border.all(color: AppColors.border, width: 1.5),
           boxShadow: active ? AppColors.sh2 : null,
         ),
         child: Text(
           label,
           style: AppTypography.bodySmall.copyWith(
             fontWeight: FontWeight.w800,
-            color: active ? AppColors.white : AppColors.slate,
+            color: active ? AppColors.white : AppColors.inkSoft,
           ),
         ),
       ),

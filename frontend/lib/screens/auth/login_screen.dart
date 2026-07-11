@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -10,6 +11,7 @@ import '../../core/utils/formatters.dart';
 import '../../core/utils/validators.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/game_provider.dart';
+import '../../widgets/ui/ambient_backdrop.dart';
 import '../../widgets/ui/app_button.dart';
 import '../../widgets/ui/app_input.dart';
 import '../../widgets/ui/reward_toast.dart';
@@ -68,15 +70,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       appBar: AppBar(
         leading: BackButton(onPressed: () => context.pop()),
       ),
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: AppSpacing.screenPadding,
+      body: Stack(
+        children: [
+          const AmbientBackdrop(
+            colors: [
+              AppColors.eagleBlue,
+              AppColors.cosmicPurple,
+              AppColors.steppeGold,
+            ],
+            opacity: .10,
+          ),
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: AppSpacing.screenPadding,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(AppStrings.loginTitle, style: AppTypography.h1),
+              Text(AppStrings.loginTitle, style: AppTypography.h1)
+                  .animate()
+                  .fadeIn(duration: 320.ms)
+                  .slideY(begin: .12, curve: Curves.easeOutCubic),
               const SizedBox(height: AppSpacing.sp2),
-              Text(AppStrings.loginSubtitle, style: AppTypography.bodySmall),
+              Text(AppStrings.loginSubtitle, style: AppTypography.bodySmall)
+                  .animate()
+                  .fadeIn(delay: 70.ms, duration: 320.ms)
+                  .slideY(begin: .12, curve: Curves.easeOutCubic),
               const SizedBox(height: AppSpacing.sp8),
               AppInput(
                 controller: _phoneController,
@@ -86,7 +104,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 keyboardType: TextInputType.phone,
                 inputFormatters: [PhoneInputFormatter()],
                 onChanged: (_) => setState(() {}),
-              ),
+              ).animate().fadeIn(delay: 140.ms, duration: 320.ms).slideY(
+                  begin: .1, curve: Curves.easeOutCubic),
               const SizedBox(height: AppSpacing.sp4),
               AppInput(
                 controller: _passwordController,
@@ -96,16 +115,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 obscure: _obscure,
                 onChanged: (_) => setState(() {}),
                 trailing: IconButton(
+                  tooltip: _obscure
+                      ? AppStrings.a11yShowPassword
+                      : AppStrings.a11yHidePassword,
                   icon: Icon(
                     _obscure
                         ? Icons.visibility_rounded
                         : Icons.visibility_off_rounded,
-                    color: AppColors.mist,
+                    color: AppColors.muted,
                     size: 22,
                   ),
                   onPressed: () => setState(() => _obscure = !_obscure),
                 ),
-              ),
+              ).animate().fadeIn(delay: 210.ms, duration: 320.ms).slideY(
+                  begin: .1, curve: Curves.easeOutCubic),
               const SizedBox(height: AppSpacing.sp3),
               Align(
                 alignment: Alignment.centerRight,
@@ -122,7 +145,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               AppButton(
                 label: _loading ? AppStrings.loading : AppStrings.loginBtn,
                 onPressed: _canSubmit ? _login : null,
-              ),
+              ).animate().fadeIn(delay: 280.ms, duration: 320.ms).slideY(
+                  begin: .14, curve: Curves.easeOutBack),
               const SizedBox(height: AppSpacing.sp4),
               Center(
                 child: TextButton(
@@ -136,10 +160,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         .copyWith(color: AppColors.eagleBlue),
                   ),
                 ),
-              ),
+              ).animate().fadeIn(delay: 360.ms, duration: 320.ms),
             ],
           ),
         ),
+      ),
+        ],
       ),
     );
   }

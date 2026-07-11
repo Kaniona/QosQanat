@@ -11,6 +11,7 @@ import '../../core/theme/app_typography.dart';
 import '../../core/utils/formatters.dart';
 import '../../core/utils/validators.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/ui/ambient_backdrop.dart';
 import '../../widgets/ui/app_button.dart';
 import '../../widgets/ui/app_input.dart';
 import '../../widgets/ui/reward_toast.dart';
@@ -113,10 +114,20 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            // ---- Жоғарғы панель: артқа + 4 сегментті прогресс ----
+      body: Stack(
+        children: [
+          const AmbientBackdrop(
+            colors: [
+              AppColors.eagleBlue,
+              AppColors.cosmicPurple,
+              AppColors.steppeGold,
+            ],
+            opacity: .10,
+          ),
+          SafeArea(
+            child: Column(
+              children: [
+                // ---- Жоғарғы панель: артқа + 4 сегментті прогресс ----
             Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.sp4,
@@ -125,6 +136,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
               child: Row(
                 children: [
                   IconButton(
+                    tooltip: AppStrings.back,
                     onPressed: _back,
                     icon: const Icon(Icons.chevron_left_rounded, size: 30),
                   ),
@@ -136,7 +148,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       height: 6,
                       decoration: BoxDecoration(
                         gradient: i <= _step ? AppColors.eagleGrad : null,
-                        color: i <= _step ? null : AppColors.cloudBorder,
+                        color: i <= _step ? null : AppColors.border,
                         borderRadius: AppRadius.rFull,
                       ),
                     ),
@@ -180,6 +192,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
             ),
           ],
         ),
+      ),
+        ],
       ),
     );
   }
@@ -247,11 +261,14 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           obscure: _obscure,
           onChanged: (_) => setState(() {}),
           trailing: IconButton(
+            tooltip: _obscure
+                ? AppStrings.a11yShowPassword
+                : AppStrings.a11yHidePassword,
             icon: Icon(
               _obscure
                   ? Icons.visibility_rounded
                   : Icons.visibility_off_rounded,
-              color: AppColors.mist,
+              color: AppColors.muted,
               size: 22,
             ),
             onPressed: () => setState(() => _obscure = !_obscure),
@@ -293,7 +310,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         Text(
           AppStrings.cityLabel,
           style: AppTypography.caption
-              .copyWith(color: AppColors.charcoal, fontSize: 13),
+              .copyWith(color: AppColors.inkSoft, fontSize: 13),
         ),
         const SizedBox(height: AppSpacing.sp2),
         DropdownButtonFormField<String>(
@@ -306,11 +323,11 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           style: AppTypography.body,
           hint: Text(
             AppStrings.choose,
-            style: AppTypography.body.copyWith(color: AppColors.mist),
+            style: AppTypography.body.copyWith(color: AppColors.muted),
           ),
-          decoration: const InputDecoration(
+          decoration: InputDecoration(
             prefixIcon: Icon(Icons.location_city_rounded,
-                color: AppColors.mist, size: 22),
+                color: AppColors.muted, size: 22),
           ),
         ),
         const SizedBox(height: AppSpacing.sp4),
@@ -325,7 +342,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         Text(
           AppStrings.gradeLabel,
           style: AppTypography.caption
-              .copyWith(color: AppColors.charcoal, fontSize: 13),
+              .copyWith(color: AppColors.inkSoft, fontSize: 13),
         ),
         const SizedBox(height: AppSpacing.sp3),
         Wrap(
@@ -341,12 +358,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   height: 48,
                   decoration: BoxDecoration(
                     gradient: _grade == g ? AppColors.eagleGrad : null,
-                    color: _grade == g ? null : AppColors.white,
+                    color: _grade == g ? null : AppColors.surface,
                     borderRadius: AppRadius.rSm,
                     border: Border.all(
                       color: _grade == g
                           ? Colors.transparent
-                          : AppColors.cloudBorder,
+                          : AppColors.border,
                       width: 1.5,
                     ),
                     boxShadow: _grade == g ? AppColors.sh2 : null,
@@ -358,7 +375,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         fontWeight: FontWeight.w800,
                         color: _grade == g
                             ? AppColors.white
-                            : AppColors.nightInk,
+                            : AppColors.ink,
                       ),
                     ),
                   ),
@@ -382,7 +399,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           width: double.infinity,
           padding: const EdgeInsets.all(AppSpacing.sp5),
           decoration: BoxDecoration(
-            color: AppColors.white,
+            color: AppColors.surface,
             borderRadius: AppRadius.rLg,
             boxShadow: AppColors.sh2,
           ),
@@ -497,10 +514,10 @@ class _AgreementCheck extends StatelessWidget {
               height: 24,
               decoration: BoxDecoration(
                 gradient: value ? AppColors.eagleGrad : null,
-                color: value ? null : AppColors.white,
+                color: value ? null : AppColors.surface,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: value ? Colors.transparent : AppColors.cloudBorder,
+                  color: value ? Colors.transparent : AppColors.border,
                   width: 1.5,
                 ),
               ),

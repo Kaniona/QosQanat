@@ -10,6 +10,7 @@ import '../../core/theme/app_typography.dart';
 import '../../core/utils/formatters.dart';
 import '../../models/user.dart';
 import '../../providers/friends_provider.dart';
+import '../../widgets/ui/empty_state.dart';
 import '../../widgets/ui/reward_toast.dart';
 import '../../widgets/ui/user_photo.dart';
 
@@ -62,7 +63,7 @@ class _FriendsScreenState extends ConsumerState<FriendsScreen> {
             labelStyle:
                 AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w800),
             labelColor: AppColors.eagleBlue,
-            unselectedLabelColor: AppColors.slate,
+            unselectedLabelColor: AppColors.inkSoft,
             indicatorColor: AppColors.eagleBlue,
             tabs: [
               const Tab(text: AppStrings.tabMyFriends),
@@ -298,7 +299,7 @@ class _FriendCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(AppSpacing.sp3),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surface,
         borderRadius: AppRadius.rLg,
         boxShadow: AppColors.sh1,
       ),
@@ -382,22 +383,6 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.sp8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 56, color: AppColors.mist),
-            const SizedBox(height: AppSpacing.sp3),
-            Text(
-              text,
-              textAlign: TextAlign.center,
-              style: AppTypography.bodySmall,
-            ),
-          ],
-        ),
-      ),
-    );
+    return EmptyState(icon: icon, title: text, accent: AppColors.eagleBlue);
   }
 }

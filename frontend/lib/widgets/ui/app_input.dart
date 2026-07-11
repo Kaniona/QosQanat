@@ -59,7 +59,7 @@ class AppInput extends StatelessWidget {
         if (label != null) ...[
           Text(label!,
               style: AppTypography.caption.copyWith(
-                color: AppColors.charcoal,
+                color: AppColors.inkSoft,
                 fontSize: 13,
               )),
           const SizedBox(height: AppSpacing.sp2),
@@ -77,7 +77,7 @@ class AppInput extends StatelessWidget {
             hintText: hint,
             counterText: '',
             prefixIcon: leadingIcon != null
-                ? Icon(leadingIcon, color: AppColors.mist, size: 22)
+                ? Icon(leadingIcon, color: AppColors.muted, size: 22)
                 : null,
             suffixIcon: trailing ??
                 (success
@@ -125,9 +125,9 @@ class PasswordStrengthMeter extends StatelessWidget {
   Widget build(BuildContext context) {
     final score = Validators.passwordScore(password);
     final colors = switch (score) {
-      0 => const [AppColors.cloudBorder, AppColors.cloudBorder, AppColors.cloudBorder],
-      1 => const [AppColors.dangerCoral, AppColors.cloudBorder, AppColors.cloudBorder],
-      2 => const [AppColors.warningSunset, AppColors.warningSunset, AppColors.cloudBorder],
+      0 => [AppColors.border, AppColors.border, AppColors.border],
+      1 => [AppColors.dangerCoral, AppColors.border, AppColors.border],
+      2 => [AppColors.warningSunset, AppColors.warningSunset, AppColors.border],
       _ => const [AppColors.successJade, AppColors.successJade, AppColors.successJade],
     };
     final label = switch (score) {
@@ -140,7 +140,7 @@ class PasswordStrengthMeter extends StatelessWidget {
       1 => AppColors.dangerCoral,
       2 => AppColors.warningSunset,
       3 => AppColors.successJade,
-      _ => AppColors.mist,
+      _ => AppColors.muted,
     };
 
     return Column(
@@ -206,7 +206,7 @@ class _Requirement extends StatelessWidget {
             height: 16,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: met ? AppColors.successJade : AppColors.cloudBorder,
+              color: met ? AppColors.successJade : AppColors.border,
             ),
             child: met
                 ? const Icon(Icons.check_rounded,
@@ -217,7 +217,7 @@ class _Requirement extends StatelessWidget {
           Text(
             label,
             style: AppTypography.caption.copyWith(
-              color: met ? AppColors.successJade : AppColors.slate,
+              color: met ? AppColors.successJade : AppColors.inkSoft,
             ),
           ),
         ],
@@ -286,14 +286,14 @@ class _OtpInputState extends State<OtpInput> {
                 contentPadding: EdgeInsets.zero,
                 filled: true,
                 fillColor: _controllers[i].text.isNotEmpty
-                    ? AppColors.eagleBlueLight
-                    : AppColors.white,
+                    ? AppColors.tintBlue
+                    : AppColors.surface,
                 enabledBorder: OutlineInputBorder(
                   borderRadius: AppRadius.rMd,
                   borderSide: BorderSide(
                     color: _controllers[i].text.isNotEmpty
                         ? AppColors.eagleBlue
-                        : AppColors.cloudBorder,
+                        : AppColors.border,
                     width: 1.5,
                   ),
                 ),

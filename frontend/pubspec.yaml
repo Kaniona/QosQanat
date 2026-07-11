@@ -1,7 +1,7 @@
-name: qosqanat_2_0
+name: qosqanat
 description: "QosQanat 2.0 — Қазақстан мектеп оқушыларына арналған геймификацияланған білім беру қосымшасы (offline, local cache)."
 publish_to: 'none'
-version: 2.0.0+1
+version: 2.1.0+2
 
 environment:
   sdk: ^3.11.0
@@ -33,9 +33,15 @@ dependencies:
   image_picker: ^1.1.2
   audioplayers: ^6.1.0
 
+  # Дауыспен оқу (құрылғы TTS қозғалтқышы — қолжетімді болса ғана көрінеді)
+  flutter_tts: ^4.2.0
+
   # Misc
   intl: ^0.20.2
   cupertino_icons: ^1.0.8
+
+  # Networking (AI серік backend proxy-ге сұрау)
+  http: ^1.2.2
 
   # Security (құпиясөз хэші)
   crypto: ^3.0.3
@@ -44,6 +50,10 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+
+  # Brand assets generation (icon + native splash)
+  flutter_launcher_icons: ^0.14.4
+  flutter_native_splash: ^2.4.6
 
 flutter:
   uses-material-design: true
@@ -54,3 +64,38 @@ flutter:
     - assets/ornek/
     - assets/mascots/
     - assets/sounds/
+    - assets/legends/math/
+    - assets/legends/physics/
+    - assets/legends/kazakh/
+    - assets/legends/english/
+    - assets/legends/cs/
+
+# ---- Қосымша белгішесі (adaptive icon + iOS/web) ----
+# Жаңарту: dart run flutter_launcher_icons
+flutter_launcher_icons:
+  image_path: "branding/icon_1024.png"
+  android: true
+  min_sdk_android: 21
+  adaptive_icon_background: "branding/icon_bg.png"
+  adaptive_icon_foreground: "branding/icon_foreground.png"
+  ios: true
+  remove_alpha_ios: true
+  web:
+    generate: true
+    image_path: "branding/icon_1024.png"
+    background_color: "#4A6CF7"
+    theme_color: "#4A6CF7"
+
+# ---- Ашылу экраны (native splash, light + dark) ----
+# Жаңарту: dart run flutter_native_splash:create
+flutter_native_splash:
+  color: "#FAFBFF"
+  image: "branding/splash_icon.png"
+  color_dark: "#1A1A4E"
+  image_dark: "branding/splash_icon.png"
+  android_12:
+    image: "branding/splash_icon.png"
+    color: "#FAFBFF"
+    image_dark: "branding/splash_icon.png"
+    color_dark: "#1A1A4E"
+  web: false

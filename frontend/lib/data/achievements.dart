@@ -11,6 +11,11 @@ abstract final class AchievementsData {
   }
 
   static const List<Achievement> all = [
+    // ---- v2.1 ----
+    Achievement(id: 'ach_daily_perfect', title: 'Күн жауынгері', description: 'Күнделікті марафонды мінсіз өт', icon: '🔥', category: AchievementCategory.special, coinReward: 100, akylReward: 20, targetValue: 1),
+    Achievement(id: 'ach_first_ubt', title: 'ҰБТ жолында', description: 'Алғашқы ҰБТ байқау сынағын тапсыр', icon: '📝', category: AchievementCategory.special, coinReward: 150, akylReward: 30, targetValue: 1),
+    Achievement(id: 'ach_ubt_master', title: 'ҰБТ шебері', description: 'ҰБТ сынағында 80%+ жина', icon: '🎖️', category: AchievementCategory.special, coinReward: 400, akylReward: 80, targetValue: 1),
+
     // ---- Оқу ----
     Achievement(id: 'ach_first_task', title: 'Алғашқы қадам', description: 'Бірінші тапсырманы орында', icon: '🐣', category: AchievementCategory.learning, coinReward: 20, targetValue: 1),
     Achievement(id: 'ach_tasks_10', title: 'Білімқұмар', description: '10 тапсырма орында', icon: '📖', category: AchievementCategory.learning, coinReward: 50, targetValue: 10),
@@ -58,5 +63,15 @@ abstract final class AchievementsData {
     Achievement(id: 'ach_early_bird', title: 'Ерте тұрған', description: 'Таңғы 7-ге дейін сабақ оқы', icon: '🌅', category: AchievementCategory.special, coinReward: 50, targetValue: 1),
     Achievement(id: 'ach_night_owl', title: 'Түнгі үкі', description: 'Түнгі 11-ден кейін сабақ оқы', icon: '🦉', category: AchievementCategory.special, coinReward: 50, targetValue: 1),
     Achievement(id: 'ach_tournament', title: 'Турнирші', description: 'Турнирге қатыс', icon: '🏟️', category: AchievementCategory.special, coinReward: 100, akylReward: 20, targetValue: 1),
+
+    // ---- Шеберлік (бейімделетін оқыту) ----
+    Achievement(id: 'ach_topic_master', title: 'Тақырып шебері', description: 'Бір тақырыпты «Шебер» деңгейіне жеткіз', icon: '🌟', category: AchievementCategory.learning, coinReward: 80, akylReward: 15, targetValue: 1),
+    Achievement(id: 'ach_proven_5', title: 'Берік білім', description: '5 тақырыпты «Бекіді» деңгейіне жеткіз', icon: '💪', category: AchievementCategory.learning, coinReward: 120, akylReward: 25, targetValue: 5),
+    Achievement(id: 'ach_topics_master_10', title: 'Білім зергері', description: '10 тақырыпты «Шебер» деңгейіне жеткіз', icon: '✨', category: AchievementCategory.learning, coinReward: 300, akylReward: 60, targetValue: 10),
+    Achievement(id: 'ach_subject_master', title: 'Пән сұңқары', description: 'Бір пәнді толық «Шебер» деңгейіне жеткіз', icon: '👑', category: AchievementCategory.special, coinReward: 500, akylReward: 100, targetValue: 1),
+
+    // ---- Батл шеберлігі ----
+    Achievement(id: 'ach_battle_combo', title: 'Комбо шебері', description: 'Батлда қатарынан 5 рет дұрыс жауап бер', icon: '🔥', category: AchievementCategory.battle, coinReward: 100, akylReward: 25, targetValue: 5),
+    Achievement(id: 'ach_battle_perfect', title: 'Мінсіз батл', description: 'Батлда барлық сұраққа дұрыс жауап бер', icon: '⭐', category: AchievementCategory.battle, coinReward: 150, akylReward: 40, targetValue: 1),
   ];
 }

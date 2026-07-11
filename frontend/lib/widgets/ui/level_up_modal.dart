@@ -6,6 +6,7 @@ import '../../core/constants/app_strings.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
+import '../../core/utils/app_sounds.dart';
 import 'app_button.dart';
 
 /// Деңгей көтерілу модалы: конфетти + серіппелі деңгей белгісі + сыйлық.
@@ -36,6 +37,7 @@ class _LevelUpModalState extends State<LevelUpModal> {
     super.initState();
     _confetti = ConfettiController(duration: const Duration(seconds: 2))
       ..play();
+    AppSounds.levelUp();
   }
 
   @override
@@ -60,7 +62,7 @@ class _LevelUpModalState extends State<LevelUpModal> {
               AppSpacing.sp6,
             ),
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: AppColors.surface,
               borderRadius: AppRadius.rXl,
               boxShadow: AppColors.sh4,
             ),

@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants/app_strings.dart';
+import '../../core/constants/curriculum_data.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import '../../models/enums.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/game_provider.dart';
+import '../../providers/mastery_provider.dart';
 import '../../providers/settings_provider.dart';
+import '../../providers/task_provider.dart';
+import '../../services/demo_seeder.dart';
 import '../../widgets/avatar/avatar_selector.dart';
 import '../../widgets/ui/app_button.dart';
 import '../../widgets/ui/reward_toast.dart';
@@ -136,10 +142,10 @@ class SettingsScreen extends ConsumerWidget {
           // ---- Қосымша туралы ----
           const _SectionLabel(AppStrings.sectionAbout),
           _SettingsGroup(children: [
-            const _ValueRow(
+            _ValueRow(
               icon: Icons.info_outline_rounded,
               label: AppStrings.settingVersion,
-              trailing: Text('2.0.0', style: TextStyle(color: AppColors.slate)),
+              trailing: Text('2.0.0', style: TextStyle(color: AppColors.inkSoft)),
             ),
             _ValueRow(
               icon: Icons.description_outlined,
@@ -157,6 +163,19 @@ class SettingsScreen extends ConsumerWidget {
               onTap: () => _comingSoon(context, AppStrings.settingSupport),
             ),
           ]),
+
+          // ---- Демо/презентация (тек демо-аккаунтта көрінеді) ----
+          if (user?.id == DemoSeeder.demoUserId) ...[
+            const _SectionLabel('ПРЕЗЕНТАЦИЯ'),
+            _SettingsGroup(children: [
+              _ValueRow(
+                icon: Icons.restart_alt_rounded,
+                label: AppStrings.demoResetTitle,
+                subtitle: AppStrings.demoResetHint,
+                onTap: () => _resetDemo(context, ref),
+              ),
+            ]),
+          ],
           const SizedBox(height: AppSpacing.sp5),
 
           // ---- Шығу ----
@@ -173,9 +192,30 @@ class SettingsScreen extends ConsumerWidget {
               label: const Text(AppStrings.logout),
             ),
           ),
-        ],
+        ]
+            .animate(interval: 55.ms)
+            .fadeIn(duration: 280.ms)
+            .slideY(begin: .05, curve: Curves.easeOutCubic),
       ),
     );
+  }
+
+  /// Демо прогресін қалпына келтіру + барлық оқу провайдерлерін жаңарту.
+  Future<void> _resetDemo(BuildContext context, WidgetRef ref) async {
+    await ref.read(authProvider.notifier).resetDemo();
+    ref.invalidate(masteryProvider);
+    ref.invalidate(gameProvider); // HUD қайта есептелген XP/монетаны оқысын
+    for (final s in CurriculumData.subjects) {
+      ref.invalidate(taskProvider(s.id));
+    }
+    if (context.mounted) {
+      RewardToast.show(
+        context,
+        message: AppStrings.demoResetDone,
+        icon: Icons.restart_alt_rounded,
+        color: AppColors.steppeGold,
+      );
+    }
   }
 
   static void _comingSoon(BuildContext context, String title) {
@@ -368,7 +408,7 @@ class _SettingsGroup extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surface,
         borderRadius: AppRadius.rLg,
         boxShadow: AppColors.sh1,
       ),
@@ -439,7 +479,7 @@ class _ValueRow extends StatelessWidget {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: AppColors.eagleBlueLight,
+                color: AppColors.tintBlue,
                 borderRadius: AppRadius.rSm,
               ),
               child: Icon(icon, size: 20, color: AppColors.eagleBlue),
@@ -467,8 +507,8 @@ class _ValueRow extends StatelessWidget {
             if (trailing != null)
               trailing!
             else if (onTap != null)
-              const Icon(Icons.chevron_right_rounded,
-                  color: AppColors.mist, size: 22),
+              Icon(Icons.chevron_right_rounded,
+                  color: AppColors.muted, size: 22),
           ],
         ),
       ),
@@ -488,9 +528,9 @@ class _LanguageToggle extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(3),
       decoration: BoxDecoration(
-        color: AppColors.dawnBg,
+        color: AppColors.bg,
         borderRadius: AppRadius.rFull,
-        border: Border.all(color: AppColors.cloudBorder),
+        border: Border.all(color: AppColors.border),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -523,7 +563,7 @@ class _LanguageToggle extends StatelessWidget {
                   style: AppTypography.caption.copyWith(
                     color: language == lang
                         ? AppColors.white
-                        : AppColors.slate,
+                        : AppColors.inkSoft,
                   ),
                 ),
               ),

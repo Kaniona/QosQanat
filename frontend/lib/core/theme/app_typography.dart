@@ -9,14 +9,15 @@ abstract final class AppTypography {
   static TextStyle _nunito(
     double size,
     FontWeight weight, {
-    Color color = AppColors.nightInk,
+    Color? color,
     double? letterSpacing,
     double? height,
   }) {
     return GoogleFonts.nunito(
       fontSize: size,
       fontWeight: weight,
-      color: color,
+      // Әдепкі — режимге сезімтал негізгі мәтін түсі (жарық/қараңғы).
+      color: color ?? AppColors.ink,
       letterSpacing: letterSpacing,
       height: height,
     );
@@ -51,11 +52,11 @@ abstract final class AppTypography {
 
   /// 14 / 600 — қосалқы мәтін
   static TextStyle get bodySmall =>
-      _nunito(14, FontWeight.w600, color: AppColors.slate, height: 1.45);
+      _nunito(14, FontWeight.w600, color: AppColors.inkSoft, height: 1.45);
 
   /// 12 / 700 — мета / даталар
   static TextStyle get caption =>
-      _nunito(12, FontWeight.w700, color: AppColors.slate);
+      _nunito(12, FontWeight.w700, color: AppColors.inkSoft);
 
   /// 11 / 800 — таб жазулары
   static TextStyle get tabLabel => _nunito(11, FontWeight.w800);

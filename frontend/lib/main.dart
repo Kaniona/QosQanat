@@ -6,6 +6,8 @@ import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/app_typography.dart';
 import 'navigation/app_router.dart';
+import 'providers/settings_provider.dart';
+import 'services/demo_seeder.dart';
 import 'services/local_storage_service.dart';
 import 'services/mock_data_service.dart';
 
@@ -14,6 +16,8 @@ Future<void> main() async {
   try {
     await LocalStorageService.instance.init();
     await MockDataService.instance.seedMockData();
+    // Көрме режимі: демо-аккаунттың картасы мен шеберлігін «тірі» қылу.
+    await DemoSeeder.instance.ensureSeeded();
   } catch (e) {
     runApp(_BootErrorApp(message: '$e'));
     return;
@@ -27,11 +31,33 @@ class QosQanatApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
+    final darkMode = ref.watch(settingsProvider.select((s) => s.darkMode));
+
+    // Жаһандық режим: виджеттердегі AppColors.surface/ink/border/… осыдан оқиды.
+    // Material компоненттері themeMode арқылы ауысады — екеуі де бір баптаудан.
+    AppColors.brightness = darkMode ? Brightness.dark : Brightness.light;
+
     return MaterialApp.router(
       title: AppStrings.appName,
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      themeMode: darkMode ? ThemeMode.dark : ThemeMode.light,
       routerConfig: router,
+      // Қолжетімділік: мәтін масштабын шектен тыс үлкейтуден қорғаймыз
+      // (тығыз ойын HUD-ы бұзылмауы үшін), бірақ үлкейтуге де мүмкіндік береміз.
+      builder: (context, child) {
+        final mq = MediaQuery.of(context);
+        return MediaQuery(
+          data: mq.copyWith(
+            textScaler: mq.textScaler.clamp(
+              minScaleFactor: 0.9,
+              maxScaleFactor: 1.3,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
   }
 }
@@ -47,7 +73,7 @@ class _BootErrorApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       home: Scaffold(
-        backgroundColor: AppColors.dawnBg,
+        backgroundColor: AppColors.bg,
         body: Center(
           child: Padding(
             padding: const EdgeInsets.all(24),

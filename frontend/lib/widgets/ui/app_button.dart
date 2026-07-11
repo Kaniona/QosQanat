@@ -4,6 +4,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/utils/app_haptics.dart';
+import '../../core/utils/app_sounds.dart';
 
 enum AppButtonVariant { primary, secondary, gold, text }
 
@@ -39,11 +40,11 @@ class _AppButtonState extends State<AppButton> {
     final (Gradient? gradient, Color? solid, Color fg, Border? border,
         List<BoxShadow> shadow) = switch (widget.variant) {
       AppButtonVariant.primary => _disabled
-          ? (null, AppColors.disabledFill, AppColors.white, null, const <BoxShadow>[])
+          ? (null, AppColors.disabled, AppColors.white, null, const <BoxShadow>[])
           : (AppColors.eagleGrad, null, AppColors.white, null, AppColors.sh2),
       AppButtonVariant.secondary => (
           null,
-          AppColors.white,
+          AppColors.surface,
           AppColors.eagleBlue,
           Border.all(color: AppColors.eagleBlue, width: 2),
           const <BoxShadow>[],
@@ -91,14 +92,20 @@ class _AppButtonState extends State<AppButton> {
           ? null
           : () {
               AppHaptics.tap();
+              AppSounds.tap();
               widget.onPressed!();
             },
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 120),
-        curve: Curves.easeOut,
+        duration: const Duration(milliseconds: 130),
+        curve: _pressed ? Curves.easeOut : Curves.easeOutBack,
         height: AppSizes.buttonHeight,
         padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sp6),
-        transform: Matrix4.translationValues(0, _pressed ? 2 : 0, 0),
+        // Clay «squish»: басқанда орталыққа қарай нәзік қысылып, төмен жылжиды.
+        transformAlignment: Alignment.center,
+        transform: Matrix4.identity()
+          ..translateByDouble(0.0, _pressed ? 1.0 : 0.0, 0.0, 1.0)
+          ..scaleByDouble(
+              _pressed ? 0.97 : 1.0, _pressed ? 0.97 : 1.0, 1.0, 1.0),
         decoration: BoxDecoration(
           gradient: gradient,
           color: solid,
@@ -139,7 +146,7 @@ class AppIconButton extends StatelessWidget {
       button: true,
       label: semanticLabel,
       child: Material(
-        color: active ? AppColors.eagleBlue : AppColors.eagleBlueLight,
+        color: active ? AppColors.eagleBlue : AppColors.tintBlue,
         shape: const CircleBorder(),
         child: InkWell(
           onTap: onPressed,

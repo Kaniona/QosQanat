@@ -12,6 +12,7 @@ import '../../core/utils/formatters.dart';
 import '../../data/achievements.dart';
 import '../../models/battle.dart';
 import '../../models/enums.dart';
+import '../../models/shop_item.dart';
 import '../../providers/achievement_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/battle_provider.dart';
@@ -22,11 +23,12 @@ import '../../providers/shop_provider.dart';
 import '../../services/image_picker_service.dart';
 import '../../widgets/avatar/avatar_display.dart';
 import '../../widgets/game/xp_bar.dart';
+import '../../widgets/ui/panels.dart';
 import '../../widgets/ui/reward_toast.dart';
 import '../../widgets/ui/user_photo.dart';
 
-/// Профиль: hero (маскот + сурет + камера) → статистика → жетістіктер →
-/// белсенділік heatmap → соңғы батлдар → шығу.
+/// Профиль: градиент hero (маскот + сурет) → деңгей/XP → статистика →
+/// жетістіктер → белсенділік heatmap → соңғы батлдар → шығу.
 class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
@@ -82,138 +84,21 @@ class ProfileScreen extends ConsumerWidget {
         AppSpacing.sp12,
       ),
       children: [
-        // ---- Header жолы ----
-        Row(
-          children: [
-            Text(AppStrings.profileTitle, style: AppTypography.h1),
-            const Spacer(),
-            IconButton(
-              onPressed: () => context.push('/settings'),
-              icon: const Icon(Icons.settings_rounded,
-                  color: AppColors.slate),
-            ),
-          ],
-        ),
-
-        // ---- Hero: маскот + сурет + камера ----
-        Center(
-          child: Column(
-            children: [
-              // Барлық элемент Stack ШЕГІНДЕ тұруы маңызды: шекарадан тыс
-              // Positioned элементтер көрінгенімен басылмайды (hit-test).
-              SizedBox(
-                width: 150 + 54,
-                height: 154,
-                child: Stack(
-                  children: [
-                    Positioned(
-                      left: 0,
-                      top: 0,
-                      child: AvatarDisplay(
-                        assistant: user.assistantType,
-                        size: 150,
-                        equipped: equipped,
-                        animationsOn: animationsOn,
-                      ),
-                    ),
-                    Positioned(
-                      right: 0,
-                      bottom: 0,
-                      child: GestureDetector(
-                        behavior: HitTestBehavior.opaque,
-                        onTap: () => _pickPhoto(context, ref),
-                        child: SizedBox(
-                          width: 76,
-                          height: 76,
-                          child: Stack(
-                            children: [
-                              Positioned(
-                                left: 0,
-                                top: 0,
-                                child: UserPhoto(
-                                  photoPath: user.profilePhotoPath,
-                                  size: 64,
-                                  ringWidth: 2.5,
-                                ),
-                              ),
-                              Positioned(
-                                right: 0,
-                                bottom: 0,
-                                child: Container(
-                                  width: 28,
-                                  height: 28,
-                                  decoration: const BoxDecoration(
-                                    gradient: AppColors.eagleGrad,
-                                    shape: BoxShape.circle,
-                                    boxShadow: AppColors.sh2,
-                                  ),
-                                  child: const Icon(
-                                      Icons.photo_camera_rounded,
-                                      size: 15,
-                                      color: AppColors.white),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: AppSpacing.sp3),
-              Text(user.fullName, style: AppTypography.h2),
-              const SizedBox(height: AppSpacing.sp2),
-              // QQ-ID pill (көшіру)
-              GestureDetector(
-                onTap: () {
-                  Clipboard.setData(ClipboardData(text: user.qosqanatId));
-                  RewardToast.show(
-                    context,
-                    message: AppStrings.copied,
-                    icon: Icons.copy_rounded,
-                    color: AppColors.eagleBlue,
-                  );
-                },
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.sp3,
-                    vertical: AppSpacing.sp1,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.eagleBlueLight,
-                    borderRadius: AppRadius.rFull,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        user.qosqanatId,
-                        style: AppTypography.caption.copyWith(
-                          color: AppColors.eagleBlue,
-                          letterSpacing: 1,
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.sp1),
-                      const Icon(Icons.copy_rounded,
-                          size: 13, color: AppColors.eagleBlue),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ).animate().fadeIn(duration: 350.ms),
+        // ---- Градиент hero: маскот + сурет + аты + QQ-ID ----
+        _ProfileHero(
+          fullName: user.fullName,
+          qosqanatId: user.qosqanatId,
+          assistant: user.assistantType,
+          photoPath: user.profilePhotoPath,
+          equipped: equipped,
+          animationsOn: animationsOn,
+          onSettings: () => context.push('/settings'),
+          onPickPhoto: () => _pickPhoto(context, ref),
+        ).animate().fadeIn(duration: 350.ms).slideY(begin: .05),
         const SizedBox(height: AppSpacing.sp5),
 
         // ---- Деңгей + XP жолағы ----
-        Container(
-          padding: const EdgeInsets.all(AppSpacing.sp4),
-          decoration: BoxDecoration(
-            color: AppColors.white,
-            borderRadius: AppRadius.rLg,
-            boxShadow: AppColors.sh1,
-          ),
+        PanelCard(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -222,11 +107,13 @@ class ProfileScreen extends ConsumerWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: AppSpacing.sp3,
-                      vertical: 3,
+                      vertical: 4,
                     ),
                     decoration: BoxDecoration(
                       gradient: AppColors.goldSoar,
                       borderRadius: AppRadius.rFull,
+                      boxShadow: AppColors.glow(AppColors.steppeGold,
+                          opacity: .35, blur: 12, y: 4),
                     ),
                     child: Text(
                       '${game.level} LVL',
@@ -235,14 +122,19 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                   ),
                   const Spacer(),
+                  Icon(Icons.local_fire_department_rounded,
+                      size: 18, color: AppColors.warningSunset),
+                  const SizedBox(width: 4),
                   Text(
-                    '🔥 ${game.currentStreak} күн',
-                    style: AppTypography.caption
-                        .copyWith(color: AppColors.warningSunset),
+                    '${game.currentStreak} ${AppStrings.daysShort}',
+                    style: AppTypography.bodySmall.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.warningSunset,
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: AppSpacing.sp3),
+              const SizedBox(height: AppSpacing.sp4),
               XpBar(
                 progress: game.levelProgress,
                 xpIntoLevel: game.xpIntoLevel,
@@ -258,42 +150,42 @@ class ProfileScreen extends ConsumerWidget {
           crossAxisCount: 3,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: AppSpacing.sp2,
-          crossAxisSpacing: AppSpacing.sp2,
-          childAspectRatio: 1.35,
+          mainAxisSpacing: AppSpacing.sp3,
+          crossAxisSpacing: AppSpacing.sp3,
+          childAspectRatio: 0.92,
           children: [
             _StatCard(
-              icon: '★',
+              icon: Icons.star_rounded,
               value: Formatters.number(game.akylPoints),
               label: AppStrings.statAkyl,
               color: AppColors.cosmicPurple,
             ),
             _StatCard(
-              icon: '💰',
+              icon: Icons.monetization_on_rounded,
               value: Formatters.number(game.coins),
               label: AppStrings.statCoins,
               color: AppColors.steppeGoldDeep,
             ),
             _StatCard(
-              icon: '👥',
+              icon: Icons.people_alt_rounded,
               value: '$friendsCount',
               label: AppStrings.statFriends,
               color: AppColors.eagleBlue,
             ),
             _StatCard(
-              icon: '🔥',
+              icon: Icons.local_fire_department_rounded,
               value: '${game.currentStreak}',
               label: AppStrings.statStreak,
               color: AppColors.warningSunset,
             ),
             _StatCard(
-              icon: '✓',
+              icon: Icons.check_circle_rounded,
               value: '${user.tasksCompleted}',
               label: AppStrings.statTasks,
               color: AppColors.successJade,
             ),
             _StatCard(
-              icon: '⚔️',
+              icon: Icons.sports_kabaddi_rounded,
               value: '${user.battlesWon}/${user.battlesTotal}',
               label: AppStrings.statBattles,
               color: AppColors.dangerCoral,
@@ -302,25 +194,55 @@ class ProfileScreen extends ConsumerWidget {
         ),
         const SizedBox(height: AppSpacing.sp6),
 
-        // ---- Жетістіктер ----
-        Row(
-          children: [
-            Text(AppStrings.achievements, style: AppTypography.h3),
-            const Spacer(),
-            Text(
-              '${unlocked.length}/${AchievementsData.all.length} ${AppStrings.unlockedOf}',
-              style: AppTypography.caption,
-            ),
-          ],
+        // ---- Менің прогресім ----
+        PanelCard(
+          onTap: () => context.push('/progress'),
+          child: Row(
+            children: [
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: AppColors.eagleBlue.withValues(alpha: .14),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(Icons.insights_rounded,
+                    color: AppColors.eagleBlue, size: 24),
+              ),
+              const SizedBox(width: AppSpacing.sp3),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(AppStrings.progressTitle,
+                        style: AppTypography.body
+                            .copyWith(fontWeight: FontWeight.w900)),
+                    Text(AppStrings.progressSubjectsTitle,
+                        style: AppTypography.caption),
+                  ],
+                ),
+              ),
+              Icon(Icons.chevron_right_rounded, color: AppColors.muted),
+            ],
+          ),
         ),
-        const SizedBox(height: AppSpacing.sp3),
+        const SizedBox(height: AppSpacing.sp6),
+
+        // ---- Жетістіктер ----
+        SectionHeader(
+          title: AppStrings.achievements,
+          trailing: Text(
+            '${unlocked.length}/${AchievementsData.all.length}',
+            style: AppTypography.caption,
+          ),
+        ),
         GridView.count(
           crossAxisCount: 3,
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
-          mainAxisSpacing: AppSpacing.sp2,
-          crossAxisSpacing: AppSpacing.sp2,
-          childAspectRatio: 1.05,
+          mainAxisSpacing: AppSpacing.sp3,
+          crossAxisSpacing: AppSpacing.sp3,
+          childAspectRatio: 1.0,
           children: [
             for (final ach in AchievementsData.all)
               _AchievementTile(
@@ -334,15 +256,13 @@ class ProfileScreen extends ConsumerWidget {
         const SizedBox(height: AppSpacing.sp6),
 
         // ---- Белсенділік heatmap (4 апта) ----
-        Text(AppStrings.activity, style: AppTypography.h3),
-        const SizedBox(height: AppSpacing.sp3),
+        SectionHeader(title: AppStrings.activity),
         _ActivityHeatmap(activityDays: user.activityDays.toSet()),
         const SizedBox(height: AppSpacing.sp6),
 
         // ---- Соңғы батлдар ----
         if (battles.isNotEmpty) ...[
-          Text(AppStrings.recentBattles, style: AppTypography.h3),
-          const SizedBox(height: AppSpacing.sp3),
+          SectionHeader(title: AppStrings.recentBattles),
           for (final battle in battles)
             Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.sp2),
@@ -396,6 +316,197 @@ class ProfileScreen extends ConsumerWidget {
   }
 }
 
+/// Градиент hero картасы: параметрлер баптауы, маскот + сурет, аты, QQ-ID.
+class _ProfileHero extends StatelessWidget {
+  const _ProfileHero({
+    required this.fullName,
+    required this.qosqanatId,
+    required this.assistant,
+    required this.photoPath,
+    required this.equipped,
+    required this.animationsOn,
+    required this.onSettings,
+    required this.onPickPhoto,
+  });
+
+  final String fullName;
+  final String qosqanatId;
+  final AssistantType assistant;
+  final String? photoPath;
+  final List<ShopItem> equipped;
+  final bool animationsOn;
+  final VoidCallback onSettings;
+  final VoidCallback onPickPhoto;
+
+  @override
+  Widget build(BuildContext context) {
+    final isNazym = assistant == AssistantType.nazym;
+    final gradient = isNazym ? AppColors.heroRose : AppColors.heroEagle;
+    final accent = isNazym ? AppColors.nazymRose : AppColors.eagleBlue;
+
+    return PanelCard(
+      gradient: gradient,
+      padding: const EdgeInsets.fromLTRB(
+          AppSpacing.sp5, AppSpacing.sp3, AppSpacing.sp5, AppSpacing.sp5),
+      shadow: AppColors.glow(accent, opacity: .38, blur: 30, y: 14),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              const Spacer(),
+              Semantics(
+                button: true,
+                label: AppStrings.settingsTitle,
+                child: GestureDetector(
+                  onTap: onSettings,
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: AppColors.white.withValues(alpha: .2),
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                          color: AppColors.white.withValues(alpha: .35)),
+                    ),
+                    child: const Icon(Icons.settings_rounded,
+                        size: 20, color: AppColors.white),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          // Маскот + сурет/камера. Барлық элемент Stack ШЕГІНДЕ — hit-test
+          // шекарадан тыс басылмайды.
+          SizedBox(
+            width: 132 + 48,
+            height: 136,
+            child: Stack(
+              children: [
+                // Маскот артындағы жұмсақ жарық ореол — градиент фонда бөлектейді.
+                Positioned(
+                  left: -9,
+                  top: -2,
+                  child: IgnorePointer(
+                    child: Container(
+                      width: 150,
+                      height: 150,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: RadialGradient(
+                          colors: [
+                            AppColors.white.withValues(alpha: .20),
+                            AppColors.white.withValues(alpha: 0),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: 0,
+                  top: 0,
+                  child: AvatarDisplay(
+                    assistant: assistant,
+                    size: 132,
+                    equipped: equipped,
+                    animationsOn: animationsOn,
+                  ),
+                ),
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: onPickPhoto,
+                    child: SizedBox(
+                      width: 72,
+                      height: 72,
+                      child: Stack(
+                        children: [
+                          Positioned(
+                            left: 0,
+                            top: 0,
+                            child: UserPhoto(
+                              photoPath: photoPath,
+                              size: 60,
+                              ringWidth: 2.5,
+                            ),
+                          ),
+                          Positioned(
+                            right: 0,
+                            bottom: 0,
+                            child: Container(
+                              width: 28,
+                              height: 28,
+                              decoration: BoxDecoration(
+                                color: AppColors.white,
+                                shape: BoxShape.circle,
+                                boxShadow: AppColors.sh2,
+                              ),
+                              child: Icon(Icons.photo_camera_rounded,
+                                  size: 15, color: accent),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sp3),
+          Text(
+            fullName,
+            textAlign: TextAlign.center,
+            style: AppTypography.h2.copyWith(color: AppColors.white),
+          ),
+          const SizedBox(height: AppSpacing.sp2),
+          // QQ-ID frosted pill (көшіру)
+          GestureDetector(
+            onTap: () {
+              Clipboard.setData(ClipboardData(text: qosqanatId));
+              RewardToast.show(
+                context,
+                message: AppStrings.copied,
+                icon: Icons.copy_rounded,
+                color: AppColors.eagleBlue,
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.sp3,
+                vertical: 6,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.white.withValues(alpha: .22),
+                borderRadius: AppRadius.rFull,
+                border:
+                    Border.all(color: AppColors.white.withValues(alpha: .35)),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    qosqanatId,
+                    style: AppTypography.caption.copyWith(
+                      color: AppColors.white,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.sp1),
+                  const Icon(Icons.copy_rounded,
+                      size: 13, color: AppColors.white),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _StatCard extends StatelessWidget {
   const _StatCard({
     required this.icon,
@@ -404,34 +515,40 @@ class _StatCard extends StatelessWidget {
     required this.color,
   });
 
-  final String icon;
+  final IconData icon;
   final String value;
   final String label;
   final Color color;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.sp2),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: AppRadius.rMd,
-        boxShadow: AppColors.sh1,
-      ),
+    return PanelCard(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sp3),
+      radius: AppRadius.lg,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(icon, style: const TextStyle(fontSize: 16)),
-          const SizedBox(height: 2),
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: .12),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, size: 20, color: color),
+          ),
+          const SizedBox(height: AppSpacing.sp2),
           FittedBox(
             child: Text(
               value,
               style: AppTypography.body.copyWith(
                 fontWeight: FontWeight.w900,
-                color: color,
+                color: AppColors.ink,
+                fontSize: 18,
               ),
             ),
           ),
+          const SizedBox(height: 2),
           Text(
             label,
             maxLines: 1,
@@ -462,22 +579,19 @@ class _AchievementTile extends StatelessWidget {
     return Tooltip(
       message: description,
       triggerMode: TooltipTriggerMode.tap,
-      child: Container(
+      child: PanelCard(
         padding: const EdgeInsets.all(AppSpacing.sp2),
-        decoration: BoxDecoration(
-          color: unlocked ? AppColors.steppeGoldLight : AppColors.white,
-          borderRadius: AppRadius.rMd,
-          border: Border.all(
-            color: unlocked ? AppColors.steppeGold : AppColors.cloudBorder,
-            width: 1.5,
-          ),
-        ),
+        radius: AppRadius.lg,
+        gradient: unlocked ? AppColors.heroGold : null,
+        shadow: unlocked
+            ? AppColors.glow(AppColors.steppeGold, opacity: .3, blur: 14, y: 5)
+            : AppColors.cardShadow,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Opacity(
-              opacity: unlocked ? 1 : .35,
-              child: Text(icon, style: const TextStyle(fontSize: 24)),
+              opacity: unlocked ? 1 : .3,
+              child: Text(icon, style: const TextStyle(fontSize: 26)),
             ),
             const SizedBox(height: AppSpacing.sp1),
             Text(
@@ -487,7 +601,7 @@ class _AchievementTile extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: AppTypography.caption.copyWith(
                 fontSize: 10,
-                color: unlocked ? AppColors.nightInk : AppColors.mist,
+                color: unlocked ? AppColors.white : AppColors.muted,
               ),
             ),
           ],
@@ -515,13 +629,7 @@ class _ActivityHeatmap extends StatelessWidget {
       (i) => DateTime(today.year, today.month, today.day - 27 + i),
     );
 
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.sp4),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: AppRadius.rLg,
-        boxShadow: AppColors.sh1,
-      ),
+    return PanelCard(
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -529,20 +637,26 @@ class _ActivityHeatmap extends StatelessWidget {
             Column(
               children: [
                 for (var day = 0; day < 7; day++)
-                  Padding(
-                    padding: const EdgeInsets.all(2),
-                    child: Container(
-                      width: 22,
-                      height: 22,
-                      decoration: BoxDecoration(
-                        color: activityDays
-                                .contains(_key(days[week * 7 + day]))
-                            ? AppColors.successJade
-                            : AppColors.cloudBorder.withValues(alpha: .6),
-                        borderRadius: BorderRadius.circular(6),
+                  Builder(builder: (_) {
+                    final active = activityDays
+                        .contains(_key(days[week * 7 + day]));
+                    return Padding(
+                      padding: const EdgeInsets.all(2),
+                      child: Container(
+                        width: 22,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          color: active ? null : AppColors.border.withValues(alpha: .6),
+                          gradient: active ? AppColors.heroJade : null,
+                          borderRadius: BorderRadius.circular(7),
+                          boxShadow: active
+                              ? AppColors.glow(AppColors.successJade,
+                                  opacity: .45, blur: 7, y: 1)
+                              : null,
+                        ),
                       ),
-                    ),
-                  ),
+                    );
+                  }),
               ],
             ),
         ],
@@ -564,23 +678,19 @@ class _BattleRow extends StatelessWidget {
         ? AppColors.successJade
         : (draw ? AppColors.steppeGoldDeep : AppColors.dangerCoral);
 
-    return Container(
+    return PanelCard(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.sp3,
-        vertical: AppSpacing.sp2,
+        vertical: AppSpacing.sp3,
       ),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: AppRadius.rMd,
-        boxShadow: AppColors.sh1,
-      ),
+      radius: AppRadius.lg,
       child: Row(
         children: [
           Container(
-            width: 32,
-            height: 32,
+            width: 34,
+            height: 34,
             decoration: BoxDecoration(
-              color: color.withValues(alpha: .12),
+              color: color.withValues(alpha: .14),
               shape: BoxShape.circle,
             ),
             child: Center(
@@ -601,7 +711,7 @@ class _BattleRow extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: AppTypography.bodySmall.copyWith(
                 fontWeight: FontWeight.w800,
-                color: AppColors.nightInk,
+                color: AppColors.ink,
               ),
             ),
           ),

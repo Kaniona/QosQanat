@@ -23,11 +23,27 @@ enum NodeType {
       );
 }
 
-/// Сұрақтың қиындық деңгейі (easy 60% / medium 30% / hard 10%).
+/// Сұрақтың қиындық деңгейі — 6 деңгей, ӨСУ реті бойынша
+/// (`Difficulty.values` реті = жеңілден қиынға). Ескі банк жазбалары
+/// `easy/medium/hard` күйінде қала береді (Оңай/Орташа/Қиын болып оқылады),
+/// ал `light` (одан жеңіл) мен `complex`/`brainTeaser` (одан қиын) — жаңа.
 enum Difficulty {
-  easy,
-  medium,
-  hard;
+  light, // Жеңіл
+  easy, // Оңай
+  medium, // Орташа
+  hard, // Қиын
+  complex, // Күрделі
+  brainTeaser; // Басқатырғыш
+
+  /// Қазақша атауы (UI badge осыдан оқиды).
+  String get label => switch (this) {
+        Difficulty.light => 'Жеңіл',
+        Difficulty.easy => 'Оңай',
+        Difficulty.medium => 'Орташа',
+        Difficulty.hard => 'Қиын',
+        Difficulty.complex => 'Күрделі',
+        Difficulty.brainTeaser => 'Басқатырғыш',
+      };
 
   static Difficulty fromName(String? name) => Difficulty.values.firstWhere(
         (e) => e.name == name,

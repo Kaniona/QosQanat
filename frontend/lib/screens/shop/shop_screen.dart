@@ -4,8 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/constants/app_strings.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_icons.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
+import '../../core/utils/app_sounds.dart';
 import '../../core/utils/formatters.dart';
 import '../../data/shop_items.dart';
 import '../../models/enums.dart';
@@ -17,10 +19,11 @@ import '../../providers/shop_provider.dart';
 import '../../widgets/avatar/avatar_display.dart';
 import '../../widgets/ui/app_button.dart';
 import '../../widgets/ui/reward_toast.dart';
+import '../../widgets/ui/stat_label.dart';
 
 /// Сиректік түсі (жиек + жарқыл).
 Color rarityColor(Rarity rarity) => switch (rarity) {
-      Rarity.common => AppColors.cloudBorder,
+      Rarity.common => AppColors.border,
       Rarity.rare => AppColors.eagleBlue,
       Rarity.epic => AppColors.cosmicPurple,
       Rarity.legendary => AppColors.steppeGold,
@@ -54,6 +57,10 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
         ref.watch(settingsProvider.select((s) => s.animationsOn));
     final items = ShopItemsData.byCategory(_category);
     final equipped = ref.read(shopProvider.notifier).equippedItems;
+    // Серік акценті — сахна прожекторы мен тұғырын оқушының серігіне бояйды.
+    final accent = user?.assistantType == AssistantType.nazym
+        ? AppColors.nazymRose
+        : AppColors.eagleBlue;
 
     return Column(
       children: [
@@ -75,7 +82,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                   vertical: AppSpacing.sp2,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.steppeGoldLight,
+                  color: AppColors.tintGold,
                   borderRadius: AppRadius.rFull,
                 ),
                 child: Row(
@@ -97,11 +104,12 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
           ),
         ),
 
-        // ---- Аватар сахнасы (киілген заттармен) ----
+        // ---- Аватар сахнасы (премиум «көрме»: прожектор + сәулелі тұғыр) ----
         Container(
           height: 190,
           width: double.infinity,
           margin: const EdgeInsets.symmetric(horizontal: AppSpacing.sp5),
+          clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
             gradient: AppColors.cosmicNight,
             borderRadius: AppRadius.rLg,
@@ -110,14 +118,36 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
           child: Stack(
             alignment: Alignment.center,
             children: [
-              Positioned(
-                bottom: 14,
+              // Жоғарыдан түскен серік түсті прожектор нұры.
+              Align(
+                alignment: const Alignment(0, -0.75),
                 child: Container(
-                  width: 140,
-                  height: 20,
+                  width: 260,
+                  height: 210,
                   decoration: BoxDecoration(
-                    color: AppColors.steppeGold.withValues(alpha: .18),
+                    gradient: RadialGradient(
+                      colors: [
+                        accent.withValues(alpha: .30),
+                        accent.withValues(alpha: 0),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              // Сәуле шашқан тұғыр диск (маскот үстінде тұрады).
+              Align(
+                alignment: const Alignment(0, 0.74),
+                child: Container(
+                  width: 156,
+                  height: 30,
+                  decoration: BoxDecoration(
                     borderRadius: AppRadius.rFull,
+                    gradient: RadialGradient(
+                      colors: [
+                        accent.withValues(alpha: .55),
+                        accent.withValues(alpha: .06),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -151,18 +181,18 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
                       const EdgeInsets.symmetric(horizontal: AppSpacing.sp4),
                   decoration: BoxDecoration(
                     gradient: active ? AppColors.eagleGrad : null,
-                    color: active ? null : AppColors.white,
+                    color: active ? null : AppColors.surface,
                     borderRadius: AppRadius.rFull,
                     border: active
                         ? null
-                        : Border.all(color: AppColors.cloudBorder, width: 1.5),
+                        : Border.all(color: AppColors.border, width: 1.5),
                   ),
                   child: Center(
                     child: Text(
                       label,
                       style: AppTypography.bodySmall.copyWith(
                         fontWeight: FontWeight.w800,
-                        color: active ? AppColors.white : AppColors.slate,
+                        color: active ? AppColors.white : AppColors.inkSoft,
                       ),
                     ),
                   ),
@@ -248,6 +278,7 @@ class _ShopScreenState extends ConsumerState<ShopScreen> {
     if (!mounted) return;
     switch (result) {
       case PurchaseResult.success:
+        AppSounds.coin();
         RewardToast.show(
           context,
           message: '${item.name} — ${AppStrings.boughtToast}',
@@ -298,7 +329,7 @@ class _ShopItemCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.sp3),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: AppColors.surface,
           borderRadius: AppRadius.rLg,
           border: Border.all(
             color: equipped ? AppColors.successJade : accent,
@@ -325,7 +356,7 @@ class _ShopItemCard extends StatelessWidget {
                       child: Icon(
                         locked ? Icons.lock_rounded : item.icon,
                         size: 34,
-                        color: locked ? AppColors.mist : item.color,
+                        color: locked ? AppColors.muted : item.color,
                       ),
                     ),
                   ),
@@ -355,7 +386,7 @@ class _ShopItemCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
               style: AppTypography.bodySmall.copyWith(
                 fontWeight: FontWeight.w800,
-                color: AppColors.nightInk,
+                color: AppColors.ink,
               ),
             ),
             const SizedBox(height: AppSpacing.sp1),
@@ -380,14 +411,20 @@ class _ShopItemCard extends StatelessWidget {
       );
     }
     if (locked) {
-      return Text(
-        '🔒 ${item.requiredLevel}-деңгей',
-        style: AppTypography.caption.copyWith(color: AppColors.mist),
+      return StatLabel(
+        icon: Icons.lock_rounded,
+        text: '${item.requiredLevel}-деңгей',
+        color: AppColors.muted,
+        iconSize: 14,
+        style: AppTypography.caption,
       );
     }
-    return Text(
-      '💰 ${Formatters.number(item.price)}',
-      style: AppTypography.caption.copyWith(color: AppColors.steppeGoldDeep),
+    return StatLabel(
+      icon: AppIcons.coin,
+      text: Formatters.number(item.price),
+      color: AppColors.steppeGoldDeep,
+      iconSize: 15,
+      style: AppTypography.caption,
     );
   }
 }
@@ -484,7 +521,7 @@ class _ItemSheet extends StatelessWidget {
                   _rarityLabels[item.rarity]!,
                   style: AppTypography.caption.copyWith(
                     color: item.rarity == Rarity.common
-                        ? AppColors.slate
+                        ? AppColors.inkSoft
                         : accent,
                   ),
                 ),
@@ -514,9 +551,10 @@ class _ItemSheet extends StatelessWidget {
             )
           else
             AppButton(
+              icon: locked ? Icons.lock_rounded : AppIcons.coin,
               label: locked
-                  ? '🔒 ${item.requiredLevel} ${AppStrings.levelRequired}'
-                  : '${AppStrings.buy} · 💰 ${Formatters.number(item.price)}',
+                  ? '${item.requiredLevel} ${AppStrings.levelRequired}'
+                  : '${AppStrings.buy} · ${Formatters.number(item.price)}',
               variant: AppButtonVariant.gold,
               onPressed: locked ? null : onBuy,
             ),

@@ -22,6 +22,10 @@ class BattleState {
     this.rewardCoins = 0,
     this.rewardAkyl = 0,
     this.rewardXp = 0,
+    this.myStreak = 0,
+    this.maxCombo = 0,
+    this.comboBonus = 0,
+    this.perfect = false,
   });
 
   final Battle? battle;
@@ -34,6 +38,18 @@ class BattleState {
   final int rewardAkyl;
   final int rewardXp;
 
+  /// Қатарынан дұрыс жауап (комбо) — UI «🔥 ×N» көрсетеді.
+  final int myStreak;
+
+  /// Осы батлдағы ең ұзын комбо.
+  final int maxCombo;
+
+  /// Комбо үшін қосымша ақыл ұпайы (нәтиже экраны).
+  final int comboBonus;
+
+  /// Бәрін дұрыс шешті ме (мінсіз ойын).
+  final bool perfect;
+
   BattleState copyWith({
     Battle? battle,
     int? currentIndex,
@@ -42,6 +58,10 @@ class BattleState {
     int? rewardCoins,
     int? rewardAkyl,
     int? rewardXp,
+    int? myStreak,
+    int? maxCombo,
+    int? comboBonus,
+    bool? perfect,
   }) {
     return BattleState(
       battle: battle ?? this.battle,
@@ -51,6 +71,10 @@ class BattleState {
       rewardCoins: rewardCoins ?? this.rewardCoins,
       rewardAkyl: rewardAkyl ?? this.rewardAkyl,
       rewardXp: rewardXp ?? this.rewardXp,
+      myStreak: myStreak ?? this.myStreak,
+      maxCombo: maxCombo ?? this.maxCombo,
+      comboBonus: comboBonus ?? this.comboBonus,
+      perfect: perfect ?? this.perfect,
     );
   }
 }
@@ -129,10 +153,15 @@ class BattleNotifier extends StateNotifier<BattleState> {
       myScore: battle.myScore + (myCorrect ? 1 : 0),
       opponentScore: battle.opponentScore + (oppCorrect ? 1 : 0),
     );
+    // Комбо: қатарынан дұрыс жауап — мультипликатор өседі, қателессе нөлденеді.
+    final newStreak = myCorrect ? state.myStreak + 1 : 0;
+    final newMax = newStreak > state.maxCombo ? newStreak : state.maxCombo;
     state = state.copyWith(
       battle: updated,
       currentIndex: index + 1,
       lastRound: round,
+      myStreak: newStreak,
+      maxCombo: newMax,
     );
     await _storage.saveBattle(updated);
 
@@ -152,11 +181,18 @@ class BattleNotifier extends StateNotifier<BattleState> {
             : BattleResult.draw);
 
     // Марапаттар: жеңіс — толық, жеңіліс — жұбаныш сыйлығы.
-    final (coins, akyl, xp) = switch (result) {
+    final (baseCoins, baseAkyl, baseXp) = switch (result) {
       BattleResult.win => (50, 30, 40),
       BattleResult.draw => (25, 15, 20),
       _ => (10, 5, 10),
     };
+    // Шеберлік бонустары: ұзын комбо + мінсіз ойын (бәрі дұрыс).
+    final perfect = battle.questions.isNotEmpty &&
+        battle.myScore == battle.questions.length;
+    final comboBonus = state.maxCombo >= 3 ? state.maxCombo * 8 : 0;
+    final coins = baseCoins + (perfect ? 40 : 0);
+    final akyl = baseAkyl + comboBonus;
+    final xp = baseXp + (perfect ? 20 : 0);
 
     final finished = battle.copyWith(result: result);
     await _storage.saveBattle(finished);
@@ -166,6 +202,8 @@ class BattleNotifier extends StateNotifier<BattleState> {
       rewardCoins: coins,
       rewardAkyl: akyl,
       rewardXp: xp,
+      comboBonus: comboBonus,
+      perfect: perfect,
     );
 
     try {
@@ -190,7 +228,11 @@ class BattleNotifier extends StateNotifier<BattleState> {
       if (result == BattleResult.win) {
         await quests.track(QuestType.battleWin);
       }
-      await _ref.read(achievementProvider.notifier).evaluate();
+      // Батл шеберлігі жетістіктері (комбо ≥5 / мінсіз ойын).
+      final achievements = _ref.read(achievementProvider.notifier);
+      if (state.maxCombo >= 5) await achievements.unlock('ach_battle_combo');
+      if (perfect) await achievements.unlock('ach_battle_perfect');
+      await achievements.evaluate();
     } catch (_) {
       // Марапат қатесі батл нәтижесін бұзбауы керек.
     }

@@ -93,16 +93,27 @@ class TaskNotifier extends StateNotifier<Map<String, NodeProgress>> {
               p.status == NodeStatus.mastered);
     }
 
+    // РЕТТІК АШУ («басынан бастап»): әр тақырып (модуль) ішіндегі node-тар
+    // ретімен ашылады — i-node тек алдыңғысы (i-1) аяқталғанда қолжетімді.
+    // Әр модульдің алғашқы node-ы (n0) әрқашан ашық, сондықтан оқушы өз
+    // сыныбына дейінгі КЕЗ КЕЛГЕН тақырыпты таңдап, БАСЫНАН бастай алады.
+    bool isUnlocked(TaskNode node) {
+      if (node.indexInModule == 0) return true;
+      final prevId = '${node.subject}_g${node.grade}_m${node.module}'
+          '_n${node.indexInModule - 1}';
+      return isDone(prevId);
+    }
+
     String? currentId;
     for (final node in nodes) {
-      if (node.grade == userGrade && !isDone(node.id)) {
+      if (node.grade == userGrade && !isDone(node.id) && isUnlocked(node)) {
         currentId = node.id;
         break;
       }
     }
     if (currentId == null) {
       for (final node in nodes) {
-        if (!isDone(node.id)) {
+        if (!isDone(node.id) && isUnlocked(node)) {
           currentId = node.id;
           break;
         }
@@ -115,7 +126,9 @@ class TaskNotifier extends StateNotifier<Map<String, NodeProgress>> {
           node: node,
           status: isDone(node.id)
               ? state[node.id]!.status
-              : NodeStatus.available,
+              : (isUnlocked(node)
+                  ? NodeStatus.available
+                  : NodeStatus.locked),
           stars: state[node.id]?.stars ?? 0,
           isCurrent: node.id == currentId,
         ),
@@ -247,4 +260,21 @@ final subjectProgressProvider = Provider.family<double, String>((ref, subject) {
           v.status == NodeStatus.completed || v.status == NodeStatus.mastered)
       .length;
   return (done / views.length).clamp(0, 1).toDouble();
+});
+
+/// Пән бойынша толық статистика (карточка санағы + саяхат панелі үшін):
+/// аяқталған/барлық node саны, жиналған жұлдыз. Бір рет есептеп үшеуін береді.
+final subjectStatsProvider =
+    Provider.family<({int done, int total, int stars}), String>((ref, subject) {
+  ref.watch(taskProvider(subject));
+  final views = ref.read(taskProvider(subject).notifier).nodeViews();
+  var done = 0;
+  var stars = 0;
+  for (final v in views) {
+    if (v.status == NodeStatus.completed || v.status == NodeStatus.mastered) {
+      done++;
+    }
+    stars += v.stars;
+  }
+  return (done: done, total: views.length, stars: stars);
 });

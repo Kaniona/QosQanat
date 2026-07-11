@@ -6,14 +6,17 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/constants/app_strings.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_icons.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
+import '../../core/utils/app_sounds.dart';
 import '../../models/enums.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/battle_provider.dart';
 import '../../providers/game_provider.dart';
 import '../../widgets/avatar/avatar_display.dart';
 import '../../widgets/ui/app_button.dart';
+import '../../widgets/ui/stat_label.dart';
 import '../../widgets/ui/level_up_modal.dart';
 
 /// Батл нәтижесі: ЖЕҢІС (конфетти) немесе жігерлендіру, ұпайлар,
@@ -34,7 +37,12 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
     super.initState();
     _confetti = ConfettiController(duration: const Duration(seconds: 2));
     final battle = ref.read(battleProvider).battle;
-    if (battle?.result == BattleResult.win) _confetti.play();
+    if (battle?.result == BattleResult.win) {
+      _confetti.play();
+      AppSounds.win();
+    } else {
+      AppSounds.lose();
+    }
 
     // Батл XP-і деңгей көтерсе — модал.
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -108,7 +116,7 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
                     style: AppTypography.h1.copyWith(
                       color: won
                           ? AppColors.steppeGoldDeep
-                          : AppColors.nightInk,
+                          : AppColors.ink,
                     ),
                     textAlign: TextAlign.center,
                   ).animate().fadeIn().slideY(begin: .2),
@@ -118,7 +126,7 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
                   Container(
                     padding: const EdgeInsets.all(AppSpacing.sp5),
                     decoration: BoxDecoration(
-                      color: AppColors.white,
+                      color: AppColors.surface,
                       borderRadius: AppRadius.rLg,
                       boxShadow: AppColors.sh2,
                     ),
@@ -135,7 +143,7 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
                         Text(
                           ':',
                           style: AppTypography.numberDisplay
-                              .copyWith(color: AppColors.mist),
+                              .copyWith(color: AppColors.muted),
                         ),
                         Expanded(
                           child: _ScoreColumn(
@@ -163,26 +171,52 @@ class _BattleResultScreenState extends ConsumerState<BattleResultScreen> {
                       vertical: AppSpacing.sp4,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.steppeGoldLight,
+                      color: AppColors.tintGold,
                       borderRadius: AppRadius.rLg,
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         _RewardChip(
-                            text: '+${state.rewardXp} ⚡',
+                            icon: AppIcons.xp,
+                            text: '+${state.rewardXp}',
                             color: AppColors.eagleBlue),
                         const SizedBox(width: AppSpacing.sp4),
                         _RewardChip(
-                            text: '+${state.rewardCoins} 💰',
+                            icon: AppIcons.coin,
+                            text: '+${state.rewardCoins}',
                             color: AppColors.steppeGoldDeep),
                         const SizedBox(width: AppSpacing.sp4),
                         _RewardChip(
-                            text: '+${state.rewardAkyl} ★',
+                            icon: AppIcons.akyl,
+                            text: '+${state.rewardAkyl}',
                             color: AppColors.cosmicPurple),
                       ],
                     ),
                   ).animate().fadeIn(delay: 650.ms).slideY(begin: .15),
+
+                  // ---- Шеберлік бонустары (комбо / мінсіз ойын) ----
+                  if (state.maxCombo >= 3 || state.perfect) ...[
+                    const SizedBox(height: AppSpacing.sp3),
+                    Wrap(
+                      spacing: AppSpacing.sp2,
+                      runSpacing: AppSpacing.sp2,
+                      alignment: WrapAlignment.center,
+                      children: [
+                        if (state.maxCombo >= 3)
+                          _BonusPill(
+                            text: '🔥 ${state.maxCombo}× комбо · '
+                                '+${state.comboBonus} ақыл',
+                            color: AppColors.warningSunset,
+                          ),
+                        if (state.perfect)
+                          _BonusPill(
+                            text: '⭐ Мінсіз ойын! +40 монета',
+                            color: AppColors.successJade,
+                          ),
+                      ],
+                    ).animate().fadeIn(delay: 720.ms),
+                  ],
                   const Spacer(),
                   AvatarDisplay(
                     assistant: user?.assistantType ?? AssistantType.bektur,
@@ -246,7 +280,7 @@ class _ScoreColumn extends StatelessWidget {
         Text(
           '$score',
           style: AppTypography.numberDisplay.copyWith(
-            color: highlight ? accent : AppColors.nightInk,
+            color: highlight ? accent : AppColors.ink,
           ),
         ),
         Text(
@@ -261,18 +295,49 @@ class _ScoreColumn extends StatelessWidget {
 }
 
 class _RewardChip extends StatelessWidget {
-  const _RewardChip({required this.text, required this.color});
+  const _RewardChip({
+    required this.icon,
+    required this.text,
+    required this.color,
+  });
 
+  final IconData icon;
   final String text;
   final Color color;
 
   @override
   Widget build(BuildContext context) {
-    return Text(
-      text,
-      style: AppTypography.body.copyWith(
-        fontWeight: FontWeight.w900,
-        color: color,
+    return StatLabel(
+      icon: icon,
+      text: text,
+      color: color,
+      iconSize: 18,
+      gap: 4,
+      style: AppTypography.body,
+    );
+  }
+}
+
+/// Шеберлік бонусының белгісі (комбо / мінсіз ойын).
+class _BonusPill extends StatelessWidget {
+  const _BonusPill({required this.text, required this.color});
+  final String text;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding:
+          const EdgeInsets.symmetric(horizontal: AppSpacing.sp3, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: .14),
+        borderRadius: AppRadius.rFull,
+        border: Border.all(color: color.withValues(alpha: .4)),
+      ),
+      child: Text(
+        text,
+        style: AppTypography.caption
+            .copyWith(color: color, fontWeight: FontWeight.w800),
       ),
     );
   }

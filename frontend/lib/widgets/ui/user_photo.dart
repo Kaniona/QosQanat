@@ -31,7 +31,7 @@ class UserPhoto extends StatelessWidget {
     final placeholder = Container(
       width: innerSize,
       height: innerSize,
-      color: AppColors.eagleBlueLight,
+      color: AppColors.tintBlue,
       child: Icon(
         Icons.person_rounded,
         size: innerSize * .6,

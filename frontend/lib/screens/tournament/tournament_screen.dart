@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../core/constants/app_strings.dart';
 import '../../core/theme/app_colors.dart';
@@ -10,6 +11,7 @@ import '../../core/utils/formatters.dart';
 import '../../models/tournament.dart';
 import '../../providers/tournament_provider.dart';
 import '../../widgets/ui/app_button.dart';
+import '../../widgets/ui/empty_state.dart';
 import '../../widgets/ui/oyu_ornament.dart';
 import '../../widgets/ui/reward_toast.dart';
 
@@ -24,11 +26,11 @@ class TournamentScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('🏟️ ${AppStrings.tournamentTitle}')),
       body: tournaments.isEmpty
-          ? Center(
-              child: Text(
-                AppStrings.tournamentEmpty,
-                style: AppTypography.bodySmall,
-              ),
+          ? const EmptyState(
+              icon: Icons.emoji_events_rounded,
+              title: AppStrings.tournamentEmpty,
+              subtitle: AppStrings.tournamentEmptySub,
+              accent: AppColors.steppeGold,
             )
           : ListView.separated(
               padding: AppSpacing.screenPadding,
@@ -151,28 +153,8 @@ class _TournamentCard extends ConsumerWidget {
                 ),
                 const SizedBox(height: AppSpacing.sp5),
 
-                // ---- Қатысу ----
-                if (tournament.joined)
-                  Container(
-                    width: double.infinity,
-                    height: AppSizes.buttonHeight,
-                    decoration: BoxDecoration(
-                      color: AppColors.successJade.withValues(alpha: .18),
-                      borderRadius: AppRadius.rFull,
-                      border: Border.all(
-                        color: AppColors.successJade,
-                        width: 2,
-                      ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        AppStrings.tournamentJoined,
-                        style: AppTypography.button
-                            .copyWith(color: AppColors.successJade),
-                      ),
-                    ),
-                  )
-                else
+                // ---- Қатысу / Жарысу ----
+                if (!tournament.joined)
                   AppButton(
                     label: AppStrings.tournamentJoin,
                     variant: AppButtonVariant.gold,
@@ -192,7 +174,41 @@ class _TournamentCard extends ConsumerWidget {
                               );
                             }
                           },
+                  )
+                else ...[
+                  if (tournament.played)
+                    Container(
+                      width: double.infinity,
+                      margin: const EdgeInsets.only(bottom: AppSpacing.sp3),
+                      padding: const EdgeInsets.symmetric(
+                          vertical: AppSpacing.sp3),
+                      decoration: BoxDecoration(
+                        color: AppColors.steppeGold.withValues(alpha: .14),
+                        borderRadius: AppRadius.rMd,
+                      ),
+                      child: Center(
+                        child: Text(
+                          '${AppStrings.tournamentYourRank}: '
+                          '${tournament.rank}-${AppStrings.tournamentRankShort} '
+                          '· ${tournament.bestScore} ұпай',
+                          style: AppTypography.body.copyWith(
+                              fontWeight: FontWeight.w900,
+                              color: AppColors.steppeGoldDeep),
+                        ),
+                      ),
+                    ),
+                  AppButton(
+                    label: tournament.played
+                        ? AppStrings.tournamentReplay
+                        : AppStrings.tournamentPlay,
+                    variant: AppButtonVariant.gold,
+                    icon: Icons.sports_esports_rounded,
+                    onPressed: !tournament.isActive
+                        ? null
+                        : () =>
+                            context.push('/tournament/play/${tournament.id}'),
                   ),
+                ],
               ],
             ),
           ),

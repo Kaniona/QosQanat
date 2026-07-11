@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -119,12 +120,16 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: AppSpacing.screenPadding,
-          child: switch (_step) {
+          // Әр қадам ауысқанда тегіс кіреді (key — қадам нөмірі).
+          child: (switch (_step) {
             0 => _buildPhoneStep(),
             1 => _buildOtpStep(),
             2 => _buildPasswordStep(),
             _ => _buildSuccessStep(),
-          },
+          })
+              .animate(key: ValueKey(_step))
+              .fadeIn(duration: 300.ms)
+              .slideX(begin: .06, curve: Curves.easeOutCubic),
         ),
       ),
     );

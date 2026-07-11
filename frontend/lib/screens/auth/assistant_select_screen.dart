@@ -6,12 +6,15 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/constants/app_strings.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/theme/app_icons.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import '../../models/enums.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/avatar/avatar_base.dart';
 import '../../widgets/avatar/avatar_selector.dart';
 import '../../widgets/ui/app_button.dart';
+import '../../widgets/ui/stat_label.dart';
 
 /// Серік таңдау: Бектұр/Назым карталары → «Таңдадым» →
 /// қош келдің сыйлығы модалы (100 монета) → Home.
@@ -66,6 +69,10 @@ class _AssistantSelectScreenState
                 onSelect: (type) => setState(() => _selected = type),
               ).animate().fadeIn(delay: 200.ms).slideY(begin: .1),
               const Spacer(),
+              if (_selected != null) ...[
+                _GreetingBubble(key: ValueKey(_selected), type: _selected!),
+                const SizedBox(height: AppSpacing.sp4),
+              ],
               AppButton(
                 label:
                     _saving ? AppStrings.loading : AppStrings.assistantPicked,
@@ -78,6 +85,93 @@ class _AssistantSelectScreenState
         ),
       ),
     );
+  }
+}
+
+/// Таңдалған серіктің өз даусымен сәлемдесу көпіршігі — тұлға береді
+/// («peak» сәті). Серік ауысқанда ValueKey арқылы қайта анимацияланады.
+class _GreetingBubble extends StatelessWidget {
+  const _GreetingBubble({super.key, required this.type});
+
+  final AssistantType type;
+
+  @override
+  Widget build(BuildContext context) {
+    final isNazym = type == AssistantType.nazym;
+    final accent = isNazym ? AppColors.nazymRose : AppColors.eagleBlue;
+    final greeting =
+        isNazym ? AppStrings.nazymGreeting : AppStrings.bekturGreeting;
+    final traits = isNazym
+        ? const [AppStrings.nazymTrait1, AppStrings.nazymTrait2]
+        : const [AppStrings.bekturTrait1, AppStrings.bekturTrait2];
+
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.sp4),
+      decoration: BoxDecoration(
+        color: isNazym ? AppColors.tintRose : AppColors.tintBlue,
+        borderRadius: AppRadius.rLg,
+        border: Border.all(color: accent.withValues(alpha: .35), width: 1.4),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            alignment: Alignment.topCenter,
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              shape: BoxShape.circle,
+              boxShadow: AppColors.sh1,
+            ),
+            child: AvatarBase(assistant: type, size: 40),
+          ),
+          const SizedBox(width: AppSpacing.sp3),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  greeting,
+                  style: AppTypography.bodySmall.copyWith(
+                    color: AppColors.ink,
+                    fontWeight: FontWeight.w700,
+                    height: 1.3,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sp2),
+                Wrap(
+                  spacing: AppSpacing.sp2,
+                  runSpacing: AppSpacing.sp1,
+                  children: [
+                    for (final t in traits)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: accent.withValues(alpha: .14),
+                          borderRadius: AppRadius.rFull,
+                        ),
+                        child: Text(
+                          t,
+                          style: AppTypography.caption.copyWith(
+                            color: accent,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    )
+        .animate()
+        .fadeIn(duration: 280.ms)
+        .slideY(begin: .18, curve: Curves.easeOutCubic);
   }
 }
 
@@ -124,7 +218,7 @@ class _WelcomeGiftModalState extends State<_WelcomeGiftModal> {
           Container(
             padding: const EdgeInsets.all(AppSpacing.sp6),
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: AppColors.surface,
               borderRadius: AppRadius.rXl,
               boxShadow: AppColors.sh4,
             ),
@@ -155,10 +249,13 @@ class _WelcomeGiftModalState extends State<_WelcomeGiftModal> {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: AppSpacing.sp3),
-                Text(
-                  '💰 +100',
-                  style: AppTypography.numberDisplay
-                      .copyWith(color: AppColors.steppeGoldDeep),
+                StatLabel(
+                  icon: AppIcons.coin,
+                  text: '+100',
+                  color: AppColors.steppeGoldDeep,
+                  iconSize: 32,
+                  gap: 6,
+                  style: AppTypography.numberDisplay,
                 )
                     .animate()
                     .fadeIn(delay: 300.ms)

@@ -36,12 +36,15 @@ class AvatarDisplay extends StatelessWidget {
 
     // RepaintBoundary: маскот бір рет растрленіп, қалқу/секіру кезінде
     // тек кэштелген қабат жылжиды — әр кадрда қайта салынбайды (FPS).
+    // Мұнда қозғалыс көзі — көңіл-күй анимациясы (idle/celebrate/…), сондықтан
+    // AvatarBase-тың ішкі «тыныс алуы» өшірулі (қос қозғалыс болмауы үшін).
     final base = RepaintBoundary(
       child: AvatarBase(
         assistant: assistant,
         size: size,
         equipped: equipped,
         expression: expression,
+        animate: false,
       ),
     );
 
