@@ -43,3 +43,13 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Бектұр анимация пайплайнының аралық шығысы (tool/anim/build_all.py
+# қайта жасайды). Қосымша пайдаланатын ассеттер — тікелей
+# assets/animations/bektur/ ішінде, олар репозиторийде сақталады.
+/assets/animations/bektur/frames/
+/assets/animations/bektur/layers/
+
+# Play Market релизінің құрастыру айнымалылары (құпия DSN болуы мүмкін).
+# Үлгісі: release.env.example
+/release.env
